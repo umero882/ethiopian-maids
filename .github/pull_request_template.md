@@ -2,6 +2,12 @@
 
 Thank you for contributing! Please fill out the template below to help us review quickly and accurately.
 
+## Target Branch
+<!-- Select the target branch for this PR -->
+- [ ] `development` - Feature development and non-urgent fixes
+- [ ] `staging` - Pre-production testing and validation
+- [ ] `main` - Production release (requires approval from staging)
+
 ## Title Convention
 Use Conventional Commits for the PR title:
 - Example: `feat(ui): add maid search filters`

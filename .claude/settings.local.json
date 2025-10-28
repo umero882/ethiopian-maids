@@ -4,7 +4,11 @@
       "Bash(DATABASE_URL=\"postgres://postgres.kstoksqbhmxnrmspfywm:zU8s5wq7lJvc5bP1@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require\" NODE_TLS_REJECT_UNAUTHORIZED=0 node:*)",
       "Bash(git init:*)",
       "Bash(git config:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Ethiopian Maids Service Platform\n\nComplete React-based platform with multi-user dashboards:\n- Agency dashboard with calendar, messaging, sponsors management\n- Maid profiles and availability system\n- Sponsor management and job postings\n- PostgreSQL database with comprehensive migrations\n- Supabase integration with RLS policies\n- Real-time messaging and notifications\n- Payment processing integration\n\nTech Stack:\n- React 18 + Vite\n- TailwindCSS + Radix UI\n- PostgreSQL + Supabase\n- Jest + Playwright testing\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

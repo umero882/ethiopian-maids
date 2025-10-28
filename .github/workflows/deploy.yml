@@ -1,0 +1,82 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - development
+
+jobs:
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://ethiopian-maids.vercel.app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Vercel Production
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://ethiopian-maids-staging.vercel.app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Vercel Staging
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--target staging'
+          alias-domains: staging.ethiopian-maids.vercel.app
+          working-directory: ./
+
+  deploy-development:
+    if: github.ref == 'refs/heads/development'
+    runs-on: ubuntu-latest
+    environment:
+      name: development
+      url: https://ethiopian-maids-dev.vercel.app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Vercel Development
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          alias-domains: dev.ethiopian-maids.vercel.app
+          working-directory: ./
+
+  notify-deployment:
+    needs: [deploy-production, deploy-staging, deploy-development]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deployment notification
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          ENV=$(echo $BRANCH | tr '[:lower:]' '[:upper:]')
+          echo "✅ Deployed $BRANCH to $ENV environment"
