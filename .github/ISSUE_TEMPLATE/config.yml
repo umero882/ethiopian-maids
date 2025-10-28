@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing Guide
+    url: https://github.com/umero882/ethio-maids-staging/blob/main/CONTRIBUTING.md
+    about: Review PR conventions, labels, and the prerelease flow before filing issues.

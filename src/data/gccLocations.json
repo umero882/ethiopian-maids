@@ -1,0 +1,148 @@
+{
+  "United Arab Emirates": {
+    "iso": "AE",
+    "states": {
+      "Abu Dhabi": [
+        "Al Khalidiya",
+        "Al Reem Island",
+        "Al Mushrif",
+        "Yas Island",
+        "Saadiyat Island",
+        "Khalifa City",
+        "Al Raha Beach",
+        "Al Bateen"
+      ],
+      "Dubai": [
+        "Deira",
+        "Bur Dubai",
+        "Jumeirah",
+        "Al Barsha",
+        "Downtown",
+        "Business Bay",
+        "Dubai Marina",
+        "Palm Jumeirah",
+        "Al Quoz",
+        "Mirdif"
+      ],
+      "Sharjah": [
+        "Al Majaz",
+        "Al Nahda",
+        "Al Taawun",
+        "Rolla",
+        "Al Khan",
+        "Muwaileh",
+        "Al Qasba"
+      ],
+      "Ajman": [
+        "Al Nuaimiya",
+        "Al Rashidiya",
+        "Al Jurf",
+        "Al Rawda",
+        "Al Zahra"
+      ],
+      "Umm Al Quwain": [
+        "Al Salamah",
+        "Al Raas",
+        "Al Maidan",
+        "Al Humrah",
+        "Al Dar Al Baida"
+      ],
+      "Ras Al Khaimah": [
+        "Al Nakheel",
+        "Al Hamra",
+        "Mina Al Arab",
+        "Julphar",
+        "Khuzam",
+        "Al Dhait"
+      ],
+      "Fujairah": [
+        "Al Faseel",
+        "Al Gurfa",
+        "Dibba Fujairah",
+        "Al Hayl",
+        "Mirbah",
+        "Sakamkam"
+      ]
+    }
+  },
+  "Saudi Arabia": {
+    "iso": "SA",
+    "states": {
+      "Riyadh": ["Al Olaya", "Al Malaz", "Al Nakheel", "Qurtubah"],
+      "Makkah": [
+        "Jeddah - Al Rawdah",
+        "Jeddah - Al Hamra",
+        "Jeddah - Al Salamah",
+        "Makkah - Al Aziziyah"
+      ],
+      "Madinah": [
+        "Al Madinah Al Munawwarah - Quba",
+        "Al Madinah Al Munawwarah - Al Khalidiyah"
+      ],
+      "Eastern Province": [
+        "Dammam - Al Faisaliyah",
+        "Khobar - Corniche",
+        "Dhahran",
+        "Jubail"
+      ],
+      "Qassim": ["Buraydah", "Unaizah"],
+      "Hail": ["Hail City - Barzan"],
+      "Tabuk": ["Tabuk City - Al Nuzhah"],
+      "Northern Borders": ["Arar"],
+      "Jizan": ["Jazan City", "Sabya"],
+      "Najran": ["Najran City"],
+      "Al Bahah": ["Al Bahah City"],
+      "Asir": ["Abha", "Khamis Mushait"],
+      "Al Jawf": ["Sakakah"]
+    }
+  },
+  "Qatar": {
+    "iso": "QA",
+    "states": {
+      "Doha": ["West Bay", "The Pearl", "Al Sadd", "Old Airport"],
+      "Al Rayyan": ["Education City", "Al Waab"],
+      "Al Wakrah": ["Al Wakrah City", "Al Wukair"],
+      "Umm Salal": ["Umm Salal Ali", "Umm Salal Mohammed"],
+      "Al Daayen": ["Lusail", "Al Kheesa"],
+      "Al Khor & Al Thakhira": ["Al Khor City"],
+      "Al Shahaniya": ["Shahaniya"],
+      "Al Shamal": ["Madinat Al Shamal"]
+    }
+  },
+  "Kuwait": {
+    "iso": "KW",
+    "states": {
+      "Al Asimah (Kuwait City)": ["Kuwait City - Sharq", "Kuwait City - Dasman", "Kuwait City - Mirqab"],
+      "Hawalli": ["Salmiya", "Hawalli", "Jabriya"],
+      "Farwaniya": ["Khaitan", "Farwaniya", "Jleeb"],
+      "Mubarak Al-Kabeer": ["Sabah Al-Salem", "Qurain"],
+      "Ahmadi": ["Fahaheel", "Mahboula", "Mangaf", "Egaila"],
+      "Jahra": ["Al Jahra"]
+    }
+  },
+  "Bahrain": {
+    "iso": "BH",
+    "states": {
+      "Capital": ["Manama - Seef", "Manama - Juffair", "Manama - Hoora", "Ras Rumman"],
+      "Muharraq": ["Muharraq City", "Arad", "Hidd", "Amwaj"],
+      "Northern": ["Budaiya", "Saar", "Janabiya"],
+      "Southern": ["Riffa - East", "Riffa - West", "Askar", "Zallaq"]
+    }
+  },
+  "Oman": {
+    "iso": "OM",
+    "states": {
+      "Muscat": ["Muttrah", "Qurum", "Al Khuwair", "Seeb", "Ghubra"],
+      "Al Batinah North": ["Sohar", "Shinas"],
+      "Al Batinah South": ["Barka", "Rustaq"],
+      "Ad Dakhiliyah": ["Nizwa", "Bahla"],
+      "Ad Dhahirah": ["Ibri"],
+      "Ash Sharqiyah North": ["Ibra"],
+      "Ash Sharqiyah South": ["Sur"],
+      "Al Wusta": ["Duqm"],
+      "Musandam": ["Khasab", "Dibba Al-Bay'ah"],
+      "Dhofar": ["Salalah", "Taqah"]
+    }
+  }
+}
+

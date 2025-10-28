@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Database Table</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #45a049; }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { background: #e8f5e9; color: #2e7d32; }
+        .error { background: #ffebee; color: #c62828; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database Table Test</h1>
+        <p>This will check if the <code>phone_verifications</code> table exists and is accessible.</p>
+
+        <button onclick="checkTable()">Check Table Exists</button>
+        <button onclick="testInsert()">Test Insert</button>
+        <button onclick="viewRecords()">View All Records</button>
+        <button onclick="cleanup()">Cleanup Test Data</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kstoksqbhmxnrmspfywm.supabase.co';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzdG9rc3FiaG14bnJtc3BmeXdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MTAyNTcsImV4cCI6MjA3NTA4NjI1N30.es6ozZDte5pOHA7Y1exXwdUybM-5WTxnrADKpbSGyzw';
+
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = isError ? 'error' : 'success';
+            resultDiv.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        async function checkTable() {
+            try {
+                console.log('Checking if table exists...');
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/phone_verifications?select=count`, {
+                    headers: {
+                        'apikey': ANON_KEY,
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    }
+                });
+
+                console.log('Response status:', response.status);
+
+                if (response.status === 200) {
+                    const data = await response.json();
+                    showResult({
+                        status: '✅ Table EXISTS!',
+                        message: 'phone_verifications table is accessible',
+                        count: data.length,
+                        httpStatus: response.status
+                    });
+                } else if (response.status === 404) {
+                    showResult({
+                        status: '❌ Table NOT FOUND',
+                        message: 'phone_verifications table does not exist',
+                        httpStatus: response.status,
+                        action: 'Run the database migration in Supabase SQL Editor'
+                    }, true);
+                } else {
+                    const errorText = await response.text();
+                    showResult({
+                        status: '⚠️ Unexpected response',
+                        httpStatus: response.status,
+                        error: errorText
+                    }, true);
+                }
+            } catch (error) {
+                showResult({
+                    error: error.message,
+                    stack: error.stack
+                }, true);
+            }
+        }
+
+        async function testInsert() {
+            try {
+                console.log('Testing insert...');
+                const testData = {
+                    phone: '+971999999999',
+                    code: '123456',
+                    expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                    attempts: 0,
+                    verified: false
+                };
+
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/phone_verifications`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': ANON_KEY,
+                        'Authorization': `Bearer ${ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                if (response.status === 201) {
+                    const data = await response.json();
+                    showResult({
+                        status: '✅ Insert SUCCESSFUL!',
+                        inserted: data,
+                        message: 'Test record created successfully'
+                    });
+                } else {
+                    const errorText = await response.text();
+                    showResult({
+                        status: '❌ Insert FAILED',
+                        httpStatus: response.status,
+                        error: errorText
+                    }, true);
+                }
+            } catch (error) {
+                showResult({
+                    error: error.message,
+                    stack: error.stack
+                }, true);
+            }
+        }
+
+        async function viewRecords() {
+            try {
+                console.log('Fetching all records...');
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/phone_verifications?select=*&order=created_at.desc`, {
+                    headers: {
+                        'apikey': ANON_KEY,
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult({
+                        status: '✅ Records fetched',
+                        count: data.length,
+                        records: data.slice(0, 5) // Show first 5
+                    });
+                } else {
+                    const errorText = await response.text();
+                    showResult({
+                        status: '❌ Fetch FAILED',
+                        httpStatus: response.status,
+                        error: errorText
+                    }, true);
+                }
+            } catch (error) {
+                showResult({
+                    error: error.message
+                }, true);
+            }
+        }
+
+        async function cleanup() {
+            try {
+                console.log('Cleaning up test data...');
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/phone_verifications?phone=eq.%2B971999999999`, {
+                    method: 'DELETE',
+                    headers: {
+                        'apikey': ANON_KEY,
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    }
+                });
+
+                if (response.status === 204 || response.status === 200) {
+                    showResult({
+                        status: '✅ Cleanup SUCCESSFUL',
+                        message: 'Test records deleted'
+                    });
+                } else {
+                    const errorText = await response.text();
+                    showResult({
+                        status: '⚠️ Cleanup completed with warnings',
+                        httpStatus: response.status,
+                        response: errorText
+                    });
+                }
+            } catch (error) {
+                showResult({
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // Auto-check on load
+        window.onload = () => {
+            console.log('🔍 Auto-checking table...');
+            checkTable();
+        };
+    </script>
+</body>
+</html>

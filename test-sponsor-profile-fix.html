@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sponsor Profile Fix Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      .info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .log {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 3px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔧 Sponsor Profile Fix Test</h1>
+      <p>This tool tests the fixed sponsor profile saving functionality.</p>
+
+      <div class="test-section info">
+        <h3>📋 Test Configuration</h3>
+        <label>Supabase URL:</label>
+        <input
+          type="text"
+          id="supabaseUrl"
+          value="https://pabjehhnkpyavakduydg.supabase.co"
+        />
+
+        <label>Supabase Anon Key:</label>
+        <input
+          type="text"
+          id="supabaseKey"
+          value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYmplaGhua3B5YXZha2R1eWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2Mzk4MDMsImV4cCI6MjA3MTIxNTgwM30.jrUSeBPn-2Srty-Nqb36NpSgY_b9TV_fIooWRaAIZNg"
+        />
+
+        <label>Test User ID:</label>
+        <input
+          type="text"
+          id="testUserId"
+          value="fecf7570-c21a-46ed-97a8-00afbaf8a198"
+        />
+
+        <button onclick="initializeSupabase()">Initialize Supabase</button>
+      </div>
+
+      <div class="test-section">
+        <h3>🔍 Database Schema Check</h3>
+        <button onclick="checkDatabaseSchema()">
+          Check sponsor_profiles Schema
+        </button>
+        <div id="schemaResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>👤 Current Sponsor Profile</h3>
+        <button onclick="getCurrentProfile()">Get Current Profile</button>
+        <div id="currentProfileResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>✏️ Test Profile Update</h3>
+        <label>Family Size:</label>
+        <input type="number" id="familySize" value="4" />
+
+        <label>Children Count:</label>
+        <input type="number" id="childrenCount" value="2" />
+
+        <label>Elderly Care Needed:</label>
+        <select id="elderlyCare">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+
+        <label>Pets:</label>
+        <select id="pets">
+          <option value="false">No</option>
+          <option value="true">Yes</option>
+        </select>
+
+        <label>Preferred Nationality:</label>
+        <input
+          type="text"
+          id="preferredNationality"
+          value="Filipino,Indonesian"
+        />
+
+        <label>Budget Range (Min-Max):</label>
+        <input type="text" id="budgetMin" value="1500" placeholder="Min" />
+        <input type="text" id="budgetMax" value="2500" placeholder="Max" />
+
+        <button onclick="testProfileUpdate()">Test Profile Update</button>
+        <div id="updateResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>🆕 Test Profile Creation</h3>
+        <label>New User ID (for testing creation):</label>
+        <input type="text" id="newUserId" value="" />
+
+        <button onclick="testProfileCreation()">Test Profile Creation</button>
+        <div id="creationResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>📊 All Sponsor Profiles</h3>
+        <button onclick="getAllProfiles()">Get All Sponsor Profiles</button>
+        <div id="allProfilesResult" class="log"></div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      let supabase;
+
+      function log(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        const timestamp = new Date().toLocaleTimeString();
+        element.textContent += `[${timestamp}] ${message}\n`;
+        element.scrollTop = element.scrollHeight;
+
+        // Update section styling
+        const section = element.closest('.test-section');
+        section.className = section.className.replace(
+          /\b(success|error|info)\b/g,
+          ''
+        );
+        section.classList.add('test-section', type);
+      }
+
+      function initializeSupabase() {
+        const url = document.getElementById('supabaseUrl').value;
+        const key = document.getElementById('supabaseKey').value;
+
+        try {
+          supabase = window.supabase.createClient(url, key);
+          log(
+            'schemaResult',
+            '✅ Supabase initialized successfully',
+            'success'
+          );
+        } catch (error) {
+          log(
+            'schemaResult',
+            `❌ Failed to initialize Supabase: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      async function checkDatabaseSchema() {
+        if (!supabase) {
+          log('schemaResult', '❌ Please initialize Supabase first', 'error');
+          return;
+        }
+
+        try {
+          log(
+            'schemaResult',
+            '🔍 Checking sponsor_profiles table schema...',
+            'info'
+          );
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .limit(1);
+
+          if (error) {
+            log(
+              'schemaResult',
+              `❌ Schema check failed: ${error.message}`,
+              'error'
+            );
+            return;
+          }
+
+          if (data && data.length > 0) {
+            const columns = Object.keys(data[0]);
+            log(
+              'schemaResult',
+              `✅ Table exists with columns: ${columns.join(', ')}`,
+              'success'
+            );
+          } else {
+            log('schemaResult', '⚠️ Table exists but is empty', 'info');
+          }
+        } catch (error) {
+          log('schemaResult', `❌ Error: ${error.message}`, 'error');
+        }
+      }
+
+      async function getCurrentProfile() {
+        if (!supabase) {
+          log(
+            'currentProfileResult',
+            '❌ Please initialize Supabase first',
+            'error'
+          );
+          return;
+        }
+
+        const userId = document.getElementById('testUserId').value;
+
+        try {
+          log(
+            'currentProfileResult',
+            `🔍 Getting profile for user: ${userId}`,
+            'info'
+          );
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+          if (error) {
+            if (error.code === 'PGRST116') {
+              log(
+                'currentProfileResult',
+                '⚠️ No profile found for this user',
+                'info'
+              );
+            } else {
+              log(
+                'currentProfileResult',
+                `❌ Error: ${error.message}`,
+                'error'
+              );
+            }
+            return;
+          }
+
+          log(
+            'currentProfileResult',
+            `✅ Profile found:\n${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } catch (error) {
+          log('currentProfileResult', `❌ Error: ${error.message}`, 'error');
+        }
+      }
+
+      async function testProfileUpdate() {
+        if (!supabase) {
+          log('updateResult', '❌ Please initialize Supabase first', 'error');
+          return;
+        }
+
+        const userId = document.getElementById('testUserId').value;
+        const familySize = parseInt(
+          document.getElementById('familySize').value
+        );
+        const childrenCount = parseInt(
+          document.getElementById('childrenCount').value
+        );
+        const elderlyCare =
+          document.getElementById('elderlyCare').value === 'true';
+        const pets = document.getElementById('pets').value === 'true';
+        const preferredNationality = document.getElementById(
+          'preferredNationality'
+        ).value;
+        const budgetMin = parseInt(document.getElementById('budgetMin').value);
+        const budgetMax = parseInt(document.getElementById('budgetMax').value);
+
+        const updateData = {
+          household_size: familySize,
+          children_count: childrenCount,
+          elderly_count: elderlyCare ? 1 : 0,
+          pets_count: pets ? 1 : 0,
+          preferred_nationality: preferredNationality,
+          budget_range: `${budgetMin}-${budgetMax} AED`,
+          updated_at: new Date().toISOString(),
+        };
+
+        try {
+          log(
+            'updateResult',
+            `🔄 Updating profile for user: ${userId}`,
+            'info'
+          );
+          log(
+            'updateResult',
+            `📝 Update data: ${JSON.stringify(updateData, null, 2)}`,
+            'info'
+          );
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .update(updateData)
+            .eq('user_id', userId)
+            .select()
+            .single();
+
+          if (error) {
+            log('updateResult', `❌ Update failed: ${error.message}`, 'error');
+            return;
+          }
+
+          log(
+            'updateResult',
+            `✅ Profile updated successfully:\n${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } catch (error) {
+          log('updateResult', `❌ Error: ${error.message}`, 'error');
+        }
+      }
+
+      async function testProfileCreation() {
+        if (!supabase) {
+          log('creationResult', '❌ Please initialize Supabase first', 'error');
+          return;
+        }
+
+        const newUserId =
+          document.getElementById('newUserId').value || `test-${Date.now()}`;
+
+        const newProfileData = {
+          user_id: newUserId,
+          household_size: 3,
+          children_count: 1,
+          elderly_count: 0,
+          pets_count: 1,
+          preferred_nationality: 'Filipino',
+          budget_range: '2000-3000 AED',
+          work_type_preference: 'full-time',
+          accommodation_type: 'separate_room',
+          verification_status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        try {
+          log(
+            'creationResult',
+            `🆕 Creating profile for user: ${newUserId}`,
+            'info'
+          );
+          log(
+            'creationResult',
+            `📝 Profile data: ${JSON.stringify(newProfileData, null, 2)}`,
+            'info'
+          );
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .insert(newProfileData)
+            .select()
+            .single();
+
+          if (error) {
+            log(
+              'creationResult',
+              `❌ Creation failed: ${error.message}`,
+              'error'
+            );
+            return;
+          }
+
+          log(
+            'creationResult',
+            `✅ Profile created successfully:\n${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+          document.getElementById('newUserId').value = '';
+        } catch (error) {
+          log('creationResult', `❌ Error: ${error.message}`, 'error');
+        }
+      }
+
+      async function getAllProfiles() {
+        if (!supabase) {
+          log(
+            'allProfilesResult',
+            '❌ Please initialize Supabase first',
+            'error'
+          );
+          return;
+        }
+
+        try {
+          log(
+            'allProfilesResult',
+            '🔍 Getting all sponsor profiles...',
+            'info'
+          );
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (error) {
+            log('allProfilesResult', `❌ Error: ${error.message}`, 'error');
+            return;
+          }
+
+          log(
+            'allProfilesResult',
+            `✅ Found ${data.length} profiles:\n${JSON.stringify(data, null, 2)}`,
+            'success'
+          );
+        } catch (error) {
+          log('allProfilesResult', `❌ Error: ${error.message}`, 'error');
+        }
+      }
+
+      // Initialize on page load
+      window.onload = function () {
+        initializeSupabase();
+      };
+    </script>
+  </body>
+</html>

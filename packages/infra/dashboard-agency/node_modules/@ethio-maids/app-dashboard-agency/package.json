@@ -1,0 +1,23 @@
+{
+  "name": "@ethio-maids/app-dashboard-agency",
+  "version": "0.1.0",
+  "description": "Application layer for agency dashboard - use cases and ports",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [
+    "application",
+    "use-cases",
+    "ports",
+    "clean-architecture",
+    "cqrs"
+  ],
+  "dependencies": {
+    "@ethio-maids/domain-dashboard": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

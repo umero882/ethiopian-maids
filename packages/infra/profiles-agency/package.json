@@ -1,0 +1,32 @@
+{
+  "name": "@ethio-maids/infra-profiles-agency",
+  "version": "1.0.0",
+  "description": "Agency Profile Management - Infrastructure Layer (Supabase Adapters)",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./adapters": "./adapters/index.js"
+  },
+  "dependencies": {
+    "@ethio-maids/app-profiles-agency": "workspace:*",
+    "@ethio-maids/domain-profiles": "workspace:*",
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "agency",
+    "profiles",
+    "infrastructure",
+    "supabase",
+    "adapters"
+  ],
+  "author": "Ethio Maids",
+  "license": "MIT"
+}

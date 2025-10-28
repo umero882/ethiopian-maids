@@ -1,0 +1,30 @@
+{
+  "name": "ethiopian-maids-api-server",
+  "version": "1.0.0",
+  "description": "Backend API server for Ethiopian Maids platform - handles Twilio SMS and other backend operations",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "twilio",
+    "sms",
+    "api",
+    "backend"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "nodemailer": "^7.0.9",
+    "twilio": "^5.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

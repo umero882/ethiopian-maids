@@ -1,0 +1,17 @@
+{
+  "name": "@ethio-maids/workers",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Ethiopian Maids Workers - Background Jobs, Queues, Event Outbox",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "outbox:consumer": "node consumers/outbox-consumer.js",
+    "notification:worker": "node workers/notification-worker.js"
+  },
+  "dependencies": {
+    "@ethio-maids/app-communications": "workspace:*",
+    "@ethio-maids/utils": "workspace:*"
+  }
+}

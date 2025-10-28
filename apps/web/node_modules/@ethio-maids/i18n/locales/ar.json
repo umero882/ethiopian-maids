@@ -1,0 +1,224 @@
+{
+  "common": {
+    "buttons": {
+      "save": "حفظ",
+      "cancel": "إلغاء",
+      "submit": "إرسال",
+      "delete": "حذف",
+      "edit": "تعديل",
+      "back": "رجوع",
+      "next": "التالي",
+      "finish": "إنهاء",
+      "close": "إغلاق",
+      "search": "بحث",
+      "filter": "تصفية",
+      "clear": "مسح",
+      "apply": "تطبيق",
+      "upload": "رفع",
+      "download": "تحميل",
+      "view": "عرض",
+      "viewDetails": "عرض التفاصيل",
+      "learnMore": "معرفة المزيد",
+      "getStarted": "ابدأ الآن"
+    },
+    "labels": {
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "name": "الاسم",
+      "phone": "رقم الهاتف",
+      "country": "الدولة",
+      "city": "المدينة",
+      "address": "العنوان",
+      "description": "الوصف",
+      "status": "الحالة",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "language": "اللغة",
+      "currency": "العملة"
+    },
+    "messages": {
+      "loading": "جاري التحميل...",
+      "saving": "جاري الحفظ...",
+      "success": "نجحت العملية!",
+      "error": "حدث خطأ",
+      "noResults": "لم يتم العثور على نتائج",
+      "confirmDelete": "هل أنت متأكد من حذف هذا العنصر؟",
+      "unsavedChanges": "لديك تغييرات غير محفوظة. هل أنت متأكد من المغادرة؟"
+    },
+    "validation": {
+      "required": "هذا الحقل مطلوب",
+      "invalidEmail": "يرجى إدخال عنوان بريد إلكتروني صحيح",
+      "invalidPhone": "يرجى إدخال رقم هاتف صحيح",
+      "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+      "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين",
+      "invalidFormat": "تنسيق غير صحيح"
+    },
+    "navigation": {
+      "home": "الرئيسية",
+      "dashboard": "لوحة التحكم",
+      "profile": "الملف الشخصي",
+      "settings": "الإعدادات",
+      "logout": "تسجيل الخروج",
+      "login": "تسجيل الدخول",
+      "register": "التسجيل"
+    }
+  },
+  "identity": {
+    "register": {
+      "title": "إنشاء حساب",
+      "subtitle": "انضم إلى منصة الخادمات الإثيوبيات",
+      "selectRole": "اختر دورك",
+      "roles": {
+        "maid": "عاملة منزلية",
+        "maidDescription": "ابحث عن فرص عمل في منطقة الخليج",
+        "sponsor": "كفيل",
+        "sponsorDescription": "ابحث عن عاملات منزليات مؤهلات",
+        "agency": "وكالة",
+        "agencyDescription": "إدارة قائمة العاملات والتوظيف"
+      },
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "passwordPlaceholder": "أنشئ كلمة مرور",
+      "confirmPasswordPlaceholder": "أكد كلمة المرور",
+      "agreeToTerms": "أوافق على شروط الخدمة وسياسة الخصوصية",
+      "submitButton": "إنشاء حساب",
+      "alreadyHaveAccount": "لديك حساب بالفعل؟",
+      "signInLink": "تسجيل الدخول"
+    },
+    "login": {
+      "title": "مرحبًا بعودتك",
+      "subtitle": "سجل الدخول إلى حسابك",
+      "emailPlaceholder": "أدخل بريدك الإلكتروني",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "submitButton": "تسجيل الدخول",
+      "noAccount": "ليس لديك حساب؟",
+      "registerLink": "أنشئ حسابًا"
+    },
+    "verification": {
+      "emailTitle": "تحقق من بريدك الإلكتروني",
+      "emailMessage": "أرسلنا رابط التحقق إلى {{email}}",
+      "emailInstructions": "يرجى التحقق من صندوق الوارد والنقر على الرابط للتحقق من حسابك",
+      "phoneTitle": "تحقق من هاتفك",
+      "phoneMessage": "أدخل الرمز المرسل إلى {{phoneNumber}}",
+      "codeLabel": "رمز التحقق",
+      "codePlaceholder": "أدخل الرمز المكون من 6 أرقام",
+      "resendCode": "إعادة إرسال الرمز",
+      "verifyButton": "تحقق"
+    }
+  },
+  "profiles": {
+    "maid": {
+      "title": "ملف العاملة المنزلية",
+      "overview": "نظرة عامة على الملف",
+      "personalInfo": "المعلومات الشخصية",
+      "experience": "الخبرة العملية",
+      "skills": "المهارات واللغات",
+      "documents": "المستندات",
+      "availability": "التوفر",
+      "fields": {
+        "fullName": "الاسم الكامل",
+        "dateOfBirth": "تاريخ الميلاد",
+        "nationality": "الجنسية",
+        "maritalStatus": "الحالة الاجتماعية",
+        "experienceYears": "سنوات الخبرة",
+        "previousCountries": "الدول التي عملت فيها",
+        "skills": "المهارات",
+        "languages": "اللغات المنطوقة",
+        "preferredSalary": "الراتب المفضل",
+        "availableFrom": "متاحة من",
+        "passportNumber": "رقم جواز السفر",
+        "passportExpiry": "تاريخ انتهاء جواز السفر"
+      },
+      "completion": {
+        "title": "أكمل ملفك الشخصي",
+        "progress": "الملف مكتمل بنسبة {{percent}}٪",
+        "steps": {
+          "personal": "المعلومات الشخصية",
+          "experience": "الخبرة العملية",
+          "skills": "المهارات واللغات",
+          "documents": "رفع المستندات"
+        }
+      }
+    },
+    "sponsor": {
+      "title": "ملف الكفيل",
+      "overview": "نظرة عامة على الملف",
+      "fields": {
+        "fullName": "الاسم الكامل",
+        "country": "الدولة",
+        "city": "المدينة",
+        "familySize": "حجم الأسرة",
+        "preferences": "التفضيلات"
+      }
+    }
+  },
+  "jobs": {
+    "title": "فرص العمل",
+    "create": "انشر وظيفة",
+    "search": "البحث عن وظائف",
+    "filters": {
+      "location": "الموقع",
+      "salary": "نطاق الراتب",
+      "experience": "مستوى الخبرة",
+      "contractType": "نوع العقد"
+    },
+    "fields": {
+      "jobTitle": "عنوان الوظيفة",
+      "location": "الموقع",
+      "salary": "الراتب",
+      "description": "وصف الوظيفة",
+      "requirements": "المتطلبات",
+      "benefits": "المزايا",
+      "contractDuration": "مدة العقد",
+      "startDate": "تاريخ البدء"
+    },
+    "apply": "قدم الآن",
+    "viewApplications": "عرض الطلبات",
+    "noJobs": "لا توجد فرص عمل متاحة"
+  },
+  "subscriptions": {
+    "title": "خطط الاشتراك",
+    "currentPlan": "الخطة الحالية",
+    "choosePlan": "اختر خطة",
+    "upgrade": "ترقية",
+    "cancel": "إلغاء الاشتراك",
+    "plans": {
+      "free": {
+        "name": "مجاني",
+        "description": "وصول أساسي إلى المنصة"
+      },
+      "pro": {
+        "name": "احترافي",
+        "description": "ميزات محسنة للمحترفين"
+      },
+      "premium": {
+        "name": "مميز",
+        "description": "وصول كامل إلى جميع الميزات"
+      }
+    },
+    "billingCycle": {
+      "monthly": "شهري",
+      "annual": "سنوي"
+    },
+    "features": {
+      "profileVisibility": "ظهور الملف الشخصي",
+      "applicationLimit": "حد الطلبات",
+      "messagingUnlimited": "رسائل غير محدودة",
+      "prioritySupport": "دعم ذو أولوية",
+      "analytics": "لوحة التحليلات"
+    }
+  },
+  "dashboard": {
+    "welcome": "مرحبًا، {{name}}!",
+    "overview": "نظرة عامة",
+    "recentActivity": "النشاط الأخير",
+    "notifications": "الإشعارات",
+    "stats": {
+      "views": "مشاهدات الملف",
+      "applications": "الطلبات",
+      "messages": "الرسائل",
+      "favorites": "المفضلة"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+full_name,date_of_birth,nationality,current_location,marital_status,children_count,experience_years,skills,languages,previous_countries,availability_status,salary_expectation,visa_status,passport_number
+Jane Doe,1995-07-12,Ethiopia,Addis Ababa,single,0,3,"Cooking;Cleaning;Childcare","Amharic;English","UAE",available,1200,Visit Visa,ET1234567
+Sara Ahmed,1990-03-15,Ethiopia,Addis Ababa,married,1,5,"Cooking;Cleaning;Elderly Care","Amharic;Arabic;English","Saudi Arabia;UAE",available,1500,Employment Visa,ET2345678
+Almaz Tadesse,1992-11-20,Ethiopia,Dire Dawa,single,0,4,"Cleaning;Ironing;Childcare","Amharic;English","Qatar",available,1300,Visit Visa,ET3456789

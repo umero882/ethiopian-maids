@@ -1,0 +1,37 @@
+openapi: 3.1.0
+info:
+  title: Ethio Maids API
+  version: 1.0.0
+  description: Ethiopian Maids Platform API
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+paths:
+  /profiles/maids:
+    get:
+      summary: Get maid profiles
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaidProfile'
+
+components:
+  schemas:
+    MaidProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+        fullName:
+          type: string
+        status:
+          type: string

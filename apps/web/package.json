@@ -1,0 +1,29 @@
+{
+  "name": "@ethio-maids/web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Ethiopian Maids PWA - Frontend Application",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@ethio-maids/sdk": "workspace:*",
+    "@ethio-maids/ui": "workspace:*",
+    "@ethio-maids/i18n": "workspace:*",
+    "@ethio-maids/utils": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.16.0",
+    "framer-motion": "^10.16.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.3",
+    "vite": "^7.1.5",
+    "vitest": "^3.2.4"
+  }
+}

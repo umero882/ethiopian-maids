@@ -1,0 +1,21 @@
+{
+  "name": "@ethio-maids/domain-profiles",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Profiles Domain - Maid/Sponsor/Agency Entities & Events",
+  "main": "./index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

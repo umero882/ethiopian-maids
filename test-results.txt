@@ -1,0 +1,786 @@
+
+> ethio-maids@0.1.0-alpha.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/umera/OneDrive/Documents/ethiopian maids V.0.2/ethiopian-maids[39m
+
+[90mstdout[2m | src/hooks/__tests__/useFormValidation.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/test/admin-integration.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/lib/__tests__/secureAuth.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/phone/__tests__/PhoneVerificationModal.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/location/__tests__/GccLocationSelector.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/sponsorService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/__tests__/App.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/__tests__/integration/authFlow.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/phoneVerificationService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/profile/__tests__/PersonalInfoCard.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/test/admin-integration.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/phone/__tests__/PhoneVerificationModal.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/lib/__tests__/secureAuth.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | packages/app/profiles/__tests__/CreateMaidProfile.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | packages/domain/profiles/__tests__/MaidProfile.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/sponsorService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/__tests__/App.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/utils/__tests__/performance.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/dashboard/__tests__/DashboardLayout.profileBanner.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | packages/app/identity/__tests__/RegisterUser.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/phoneVerificationService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/profile/__tests__/PersonalInfoCard.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/hooks/__tests__/useFormValidation.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/__tests__/integration/authFlow.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/utils/__tests__/performance.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/location/__tests__/GccLocationSelector.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | packages/app/profiles/__tests__/CreateMaidProfile.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | packages/domain/profiles/__tests__/MaidProfile.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/contexts/__tests__/SubscriptionContext.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/__tests__/Navbar.completeProfile.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/dashboard/__tests__/DashboardLayout.profileBanner.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | packages/app/identity/__tests__/RegisterUser.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/contexts/__tests__/SubscriptionContext.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/__tests__/Navbar.completeProfile.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/sponsorService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/dashboard/__tests__/DashboardLayout.profileBanner.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/profile/__tests__/PersonalInfoCard.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/utils/__tests__/performance.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/__tests__/App.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/hooks/__tests__/useFormValidation.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/services/__tests__/phoneVerificationService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/phone/__tests__/PhoneVerificationModal.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/contexts/__tests__/SubscriptionContext.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/lib/__tests__/secureAuth.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | packages/app/profiles/__tests__/CreateMaidProfile.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | packages/domain/profiles/__tests__/MaidProfile.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/location/__tests__/GccLocationSelector.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/__tests__/Navbar.completeProfile.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/test/admin-integration.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/__tests__/integration/authFlow.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | packages/app/identity/__tests__/RegisterUser.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+ [31m❯[39m src/utils/__tests__/performance.test.js [2m([22m[2m18 tests[22m[2m | [22m[31m18 failed[39m[2m)[22m[32m 121[2mms[22m[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mInitialization[2m > [22mshould initialize only once[39m[32m 92[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mInitialization[2m > [22mshould not initialize in server environment[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mWeb Vitals Monitoring[2m > [22mshould record LCP metrics correctly[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mWeb Vitals Monitoring[2m > [22mshould record FID metrics correctly[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mWeb Vitals Monitoring[2m > [22mshould record CLS metrics correctly[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mMemory Management[2m > [22mshould limit metrics to 50 entries per metric[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mMemory Management[2m > [22mshould clean up old metrics older than 10 minutes[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mResource Monitoring[2m > [22mshould record resource metrics with correct naming[39m[32m 2[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mPerformance Marks and Measures[2m > [22mshould create performance marks[39m[32m 3[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mPerformance Marks and Measures[2m > [22mshould create performance measures[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mPerformance Marks and Measures[2m > [22mshould handle measure errors gracefully[39m[32m 2[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mMemory Info[2m > [22mshould return memory information when available[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mMemory Info[2m > [22mshould return null when memory API is not available[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mCleanup[2m > [22mshould clean up observers on cleanup()[39m[32m 8[2mms[22m[39m
+[31m     → expected "spy" to be called at least once[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mCleanup[2m > [22mshould clean up event listeners[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mCleanup[2m > [22mshould handle cleanup errors gracefully[39m[32m 1[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ …(2) ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mPerformance Report[2m > [22mshould generate comprehensive performance report[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m PerformanceMonitor[2m > [22mUser Interaction Monitoring[2m > [22mshould monitor user clicks[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+ [31m❯[39m src/contexts/__tests__/SubscriptionContext.test.jsx [2m([22m[2m3 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[32m 49[2mms[22m[39m
+[31m   [31m×[31m SubscriptionContext[2m > [22mhasFeatureAccess returns true for PRO plan[39m[32m 35[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m SubscriptionContext[2m > [22mhasReachedLimit detects usage limit[39m[32m 7[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m SubscriptionContext[2m > [22mincrementUsage updates usage count[39m[32m 6[2mms[22m[39m
+[31m     → React is not defined[39m
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js[2m > [22m[2minitializeSecurity[2m > [22m[2mshould initialize successfully in production
+[22m[39m[Security] 🛡️ Initializing security measures...
+[Security] 🛡️ Security initialization completed
+
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js[2m > [22m[2minitializeSecurity[2m > [22m[2mshould skip CSP in development
+[22m[39m[Security] 🛡️ Initializing security measures...
+[Security] 🛡️ Security initialization completed
+
+ [31m❯[39m src/hooks/__tests__/useFormValidation.test.js [2m([22m[2m18 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 62[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mBasic Functionality[2m > [22mshould initialize with default state[32m 18[2mms[22m[39m
+[31m   [31m×[31m useFormValidation[2m > [22mBasic Functionality[2m > [22mshould throw error for invalid schema name[39m[32m 7[2mms[22m[39m
+[31m     → jest is not defined[39m
+   [32m✓[39m useFormValidation[2m > [22mField Validation[2m > [22mshould validate individual fields[32m 4[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mField Validation[2m > [22mshould clear field errors when valid[32m 4[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mField Validation[2m > [22mshould handle field touch state[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mForm Validation[2m > [22mshould validate entire form[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mForm Validation[2m > [22mshould return errors for invalid form data[32m 1[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mEvent Handlers[2m > [22mshould handle blur events[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mEvent Handlers[2m > [22mshould handle change events[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mUtility Methods[2m > [22mshould clear all errors[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mUtility Methods[2m > [22mshould clear specific field error[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mUtility Methods[2m > [22mshould reset validation state[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mSpecialized Hooks[2m > [22mshould work with registration validation hook[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mSpecialized Hooks[2m > [22mshould work with maid profile validation hook[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mValidation Options[2m > [22mshould respect validateOnChange option[32m 2[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mValidation Options[2m > [22mshould respect validateOnBlur option[32m 1[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mValidation Options[2m > [22mshould call onValidationChange callback[32m 3[2mms[22m[39m
+   [32m✓[39m useFormValidation[2m > [22mError Handling[2m > [22mshould handle validation errors gracefully[32m 1[2mms[22m[39m
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js[2m > [22m[2minitializeSecurity[2m > [22m[2mshould not add duplicate CSP meta tags
+[22m[39m[Security] 🛡️ Initializing security measures...
+[Security] 🛡️ Security initialization completed
+
+[90mstdout[2m | src/config/__tests__/securityConfig.test.js[2m > [22m[2minitializeSecurity[2m > [22m[2mshould handle initialization errors gracefully
+[22m[39m[Security] 🛡️ Initializing security measures...
+[Security] 🛡️ Security initialization completed
+
+ [31m❯[39m src/config/__tests__/securityConfig.test.js [2m([22m[2m31 tests[22m[2m | [22m[31m31 failed[39m[2m)[22m[32m 45[2mms[22m[39m
+[31m   [31m×[31m SECURITY_CONFIG[2m > [22mshould have correct authentication settings[39m[32m 5[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SECURITY_CONFIG[2m > [22mshould have file upload restrictions[39m[32m 2[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SECURITY_CONFIG[2m > [22mshould have CSP configuration[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould accept strong passwords[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould reject passwords that are too short[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould reject passwords without uppercase[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould reject passwords without lowercase[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould reject passwords without numbers[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould handle empty passwords[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidatePassword[2m > [22mshould handle null passwords[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidateFile[2m > [22mshould accept valid files[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidateFile[2m > [22mshould reject files that are too large[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidateFile[2m > [22mshould reject disallowed file types[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mvalidateFile[2m > [22mshould reject forbidden extensions[39m[32m 6[2mms[22m[39m
+[31m     → expected 'File type not allowed. Only images an…' to contain 'extension not allowed'[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould remove script tags[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould remove HTML tags[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould trim whitespace[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould truncate long text[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould handle empty input[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22msanitizeText[2m > [22mshould handle null input[39m[32m 2[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mcheckRateLimit[2m > [22mshould allow requests within limits[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mcheckRateLimit[2m > [22mshould block requests exceeding limits[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mcheckRateLimit[2m > [22mshould clean up old attempts[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mgenerateCSPHeader[2m > [22mshould generate CSP header when enabled[39m[32m 2[2mms[22m[39m
+[31m     → expected '' to contain 'default-src \'self\''[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mgenerateCSPHeader[2m > [22mshould return empty string when disabled[39m[32m 0[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mlogSecurityEvent[2m > [22mshould log events in development[39m[32m 3[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m SecurityUtils[2m > [22mlogSecurityEvent[2m > [22mshould not log events in production[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m initializeSecurity[2m > [22mshould initialize successfully in production[39m[32m 2[2mms[22m[39m
+[31m     → expected "spy" to be called with arguments: [ 'meta' ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m initializeSecurity[2m > [22mshould skip CSP in development[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m initializeSecurity[2m > [22mshould not add duplicate CSP meta tags[39m[32m 1[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+[31m   [31m×[31m initializeSecurity[2m > [22mshould handle initialization errors gracefully[39m[32m 2[2mms[22m[39m
+[31m     → expected true to be false // Object.is equality[39m
+[31m     → Cannot read properties of undefined (reading 'clipboard')[39m
+ [31m❯[39m src/__tests__/App.test.jsx [2m([22m[2m10 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[32m 100[2mms[22m[39m
+[31m   [31m×[31m App Component[2m > [22mrenders the main application structure[39m[32m 12[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m App Component[2m > [22mrenders Home page by default[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m App Component[2m > [22mredirects to login when accessing protected routes without authentication[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m App Component[2m > [22mshows loading state when authentication is in progress[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m App Component[2m > [22mallows access to public routes without authentication[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m App Component[2m > [22mprovides correct context providers[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+   [32m✓[39m App Component[2m > [22mErrorBoundary[2m > [22mcatches JavaScript errors and displays error UI[32m 51[2mms[22m[39m
+   [32m✓[39m App Component[2m > [22mErrorBoundary[2m > [22mprovides reload functionality when error occurs[32m 14[2mms[22m[39m
+   [32m✓[39m App Component[2m > [22mErrorBoundary[2m > [22mrenders children normally when no error occurs[32m 6[2mms[22m[39m
+   [32m✓[39m App Component[2m > [22mErrorBoundary[2m > [22mlogs error information when error is caught[32m 9[2mms[22m[39m
+ [31m❯[39m src/services/__tests__/phoneVerificationService.test.js [2m([22m[2m23 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 38[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould start verification successfully[32m 7[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould return error for missing user ID[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould return error for missing phone number[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould return error for invalid phone format[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould return error if phone already verified by another user[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould handle SMS sending failure[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mstartVerification[2m > [22mshould handle database errors[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould verify code successfully[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould return error for missing fields[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould return error for invalid code format[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould return error if verification not found[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould return error if code expired[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould return error if max attempts exceeded[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mverifyCode[2m > [22mshould increment attempts on wrong code[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mresendCode[2m > [22mshould resend code successfully[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mresendCode[2m > [22mshould delete old verification before creating new one[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mcheckVerificationStatus[2m > [22mshould return verified status for sponsor[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mcheckVerificationStatus[2m > [22mshould check maid profile if sponsor not found[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mcheckVerificationStatus[2m > [22mshould return not verified if no profile found[32m 0[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mcheckVerificationStatus[2m > [22mshould handle database errors gracefully[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mgetPendingVerification[2m > [22mshould return pending verification info[32m 1[2mms[22m[39m
+   [32m✓[39m PhoneVerificationService[2m > [22mgetPendingVerification[2m > [22mshould return null if no pending verification[32m 1[2mms[22m[39m
+[31m   [31m×[31m PhoneVerificationService[2m > [22mgetPendingVerification[2m > [22mshould handle errors gracefully[39m[32m 12[2mms[22m[39m
+[31m     → expected undefined to be defined[39m
+ [31m❯[39m src/components/__tests__/Navbar.completeProfile.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+[31m   [31m×[31m Navbar Complete Profile CTA[2m > [22mshows Dashboard link when user is logged in[39m[32m 13[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Navbar Complete Profile CTA[2m > [22mshows Dashboard link when profile is complete[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "MemoryRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js[2m > [22m[2mStripeBillingService[2m > [22m[2mSubscription Management[2m > [22m[2mshould get subscription status
+[22m[39m🔎 getSubscriptionStatus called with userId: user123
+
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js[2m > [22m[2mStripeBillingService[2m > [22m[2mSubscription Management[2m > [22m[2mshould handle no active subscription
+[22m[39m🔎 getSubscriptionStatus called with userId: user123
+
+ [31m❯[39m packages/domain/profiles/__tests__/MaidProfile.test.js [2m([22m[2m27 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 43[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mCreation[2m > [22mshould create profile with required fields[32m 4[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mCreation[2m > [22mshould initialize with default values[32m 2[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mUpdate Basic Info[2m > [22mshould update basic information[32m 2[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mUpdate Basic Info[2m > [22mshould throw error if profile is archived[32m 2[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mWork Experience[2m > [22mshould add work experience[32m 2[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mWork Experience[2m > [22mshould throw error for invalid work experience[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mSkills Management[2m > [22mshould update skills[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mSkills Management[2m > [22mshould remove duplicate skills[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mSkills Management[2m > [22mshould throw error for invalid skills[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mLanguages[2m > [22mshould update languages[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mLanguages[2m > [22mshould remove duplicate languages[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mDocument Upload[2m > [22mshould upload passport[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mDocument Upload[2m > [22mshould upload medical certificate[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mDocument Upload[2m > [22mshould throw error for invalid document type[32m 2[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Submission[2m > [22mshould submit complete profile for review[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Submission[2m > [22mshould throw error if profile is incomplete[32m 0[2mms[22m[39m
+[31m   [31m×[31m MaidProfile Entity[2m > [22mProfile Submission[2m > [22mshould throw error if profile is not draft[39m[32m 15[2mms[22m[39m
+[31m     → expected [Function] to throw error including 'Only draft profiles can be submitted …' but got 'Profile must be complete before submi…'[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Approval[2m > [22mshould approve profile[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Approval[2m > [22mshould throw error if not under review[32m 0[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Rejection[2m > [22mshould reject profile with reason[32m 0[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Archival[2m > [22mshould archive active profile[32m 0[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mProfile Archival[2m > [22mshould throw error if already archived[32m 0[2mms[22m[39m
+[31m   [31m×[31m MaidProfile Entity[2m > [22mCompletion Percentage[2m > [22mshould calculate completion percentage[39m[32m 1[2mms[22m[39m
+[31m     → expected 0 to be greater than 0[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mCompletion Percentage[2m > [22mshould be 100% when all required fields filled[32m 0[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mDomain Events[2m > [22mshould accumulate multiple events[32m 0[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mDomain Events[2m > [22mshould clear events after pulling[32m 1[2mms[22m[39m
+   [32m✓[39m MaidProfile Entity[2m > [22mSerialization[2m > [22mshould serialize to JSON[32m 1[2mms[22m[39m
+[90mstdout[2m | src/services/__tests__/stripeBillingService.test.js[2m > [22m[2mStripeBillingService[2m > [22m[2mUsage Tracking[2m > [22m[2mshould check usage limits for free tier
+[22m[39m🔎 getSubscriptionStatus called with userId: user123
+
+ [31m❯[39m src/services/__tests__/stripeBillingService.test.js [2m([22m[2m18 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[32m 235[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mInitialization[2m > [22mshould initialize successfully with valid config[32m 177[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mInitialization[2m > [22mshould fail initialization with invalid config[32m 1[2mms[22m[39m
+[31m   [31m×[31m StripeBillingService[2m > [22mCheckout Session Creation[2m > [22mshould create checkout session with object parameters[39m[32m 16[2mms[22m[39m
+[31m     → expected false to be true // Object.is equality[39m
+[31m   [31m×[31m StripeBillingService[2m > [22mCheckout Session Creation[2m > [22mshould create checkout session with positional parameters[39m[32m 2[2mms[22m[39m
+[31m     → expected false to be true // Object.is equality[39m
+[31m   [31m×[31m StripeBillingService[2m > [22mCheckout Session Creation[2m > [22mshould handle checkout session creation errors[39m[32m 6[2mms[22m[39m
+[31m     → expected 'Cannot read properties of undefined (…' to be 'Failed to create session' // Object.is equality[39m
+   [32m✓[39m StripeBillingService[2m > [22mCheckout Session Creation[2m > [22mshould handle missing required parameters[32m 3[2mms[22m[39m
+[31m   [31m×[31m StripeBillingService[2m > [22mSubscription Management[2m > [22mshould get subscription status[39m[32m 6[2mms[22m[39m
+[31m     → expected false to be true // Object.is equality[39m
+   [32m✓[39m StripeBillingService[2m > [22mSubscription Management[2m > [22mshould handle no active subscription[32m 2[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mSubscription Management[2m > [22mshould get subscription plans[32m 2[2mms[22m[39m
+[31m   [31m×[31m StripeBillingService[2m > [22mCredit System[2m > [22mshould purchase credits successfully[39m[32m 2[2mms[22m[39m
+[31m     → expected false to be true // Object.is equality[39m
+   [32m✓[39m StripeBillingService[2m > [22mCredit System[2m > [22mshould handle duplicate credit purchase[32m 1[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mCredit System[2m > [22mshould get credit balance[32m 1[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mCredit System[2m > [22mshould charge contact fee[32m 2[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mUsage Tracking[2m > [22mshould check usage limits for free tier[32m 3[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mUsage Tracking[2m > [22mshould track usage[32m 2[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mUsage Tracking[2m > [22mshould get usage statistics[32m 1[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mError Handling[2m > [22mshould handle uninitialized service[32m 4[2mms[22m[39m
+   [32m✓[39m StripeBillingService[2m > [22mError Handling[2m > [22mshould handle payment processing errors gracefully[32m 3[2mms[22m[39m
+ [31m❯[39m src/test/admin-integration.test.jsx [2m([22m[2m8 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 666[2mms[22m[39m
+[31m   [31m×[31m Admin Panel Integration[2m > [22mAdminLoginPage can be imported and rendered[39m[33m 538[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Admin Panel Integration[2m > [22mAdminProtectedRoute can be imported and works with permissions[39m[32m 46[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Admin Panel Integration[2m > [22mAdminProtectedRoute denies access without permission[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Admin Panel Integration[2m > [22mAdminDashboard can be imported and rendered with mock data[39m[32m 74[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+   [32m✓[39m Admin Panel Integration[2m > [22mPermission system works correctly[32m 2[2mms[22m[39m
+   [32m✓[39m Admin Authentication Context[2m > [22museAdminAuth hook provides expected interface[32m 1[2mms[22m[39m
+   [32m✓[39m Admin Database Schema Validation[2m > [22madmin role enum has correct values[32m 1[2mms[22m[39m
+   [32m✓[39m Admin Database Schema Validation[2m > [22mpermission mappings are defined correctly[32m 1[2mms[22m[39m
+ [31m❯[39m src/components/phone/__tests__/PhoneVerificationModal.test.jsx [2m([22m[2m24 tests[22m[2m | [22m[31m24 failed[39m[2m)[22m[32m 155[2mms[22m[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mRendering[2m > [22mshould render phone number input step when open[39m[32m 40[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mRendering[2m > [22mshould not render when closed[39m[32m 5[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mRendering[2m > [22mshould render country selector[39m[32m 5[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mRendering[2m > [22mshould render SMS charges notice[39m[32m 6[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mPhone Number Input[2m > [22mshould allow phone number input[39m[32m 11[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mPhone Number Input[2m > [22mshould clean phone number input[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mPhone Number Input[2m > [22mshould allow country selection[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mSending Verification Code[2m > [22mshould send verification code successfully[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mSending Verification Code[2m > [22mshould show error for empty phone number[39m[32m 7[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mSending Verification Code[2m > [22mshould show error for invalid phone format[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mSending Verification Code[2m > [22mshould handle API errors[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mSending Verification Code[2m > [22mshould disable button while loading[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerification Code Input[2m > [22mshould render code input step[39m[32m 7[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerification Code Input[2m > [22mshould allow 6-digit code input[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerification Code Input[2m > [22mshould only allow digits in code[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerification Code Input[2m > [22mshould limit code to 6 digits[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerifying Code[2m > [22mshould verify code successfully[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerifying Code[2m > [22mshould show error for invalid code[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mVerifying Code[2m > [22mshould disable verify button when code incomplete[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mResending Code[2m > [22mshould show countdown timer for resend[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mResending Code[2m > [22mshould allow resend after countdown[39m[32m 6[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mResending Code[2m > [22mshould resend code successfully[39m[32m 16[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mNavigation[2m > [22mshould allow going back to phone number step[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PhoneVerificationModal[2m > [22mNavigation[2m > [22mshould reset state on close[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[90mstdout[2m | src/components/dashboard/__tests__/DashboardLayout.profileBanner.test.jsx
+[22m[39m[RealtimeService] Real-time service connected
+
+ [31m❯[39m src/components/dashboard/__tests__/DashboardLayout.profileBanner.test.jsx [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 15[2mms[22m[39m
+[31m   [31m×[31m Dashboard profile completion indicators[2m > [22mshows profile completion indicators when profile is incomplete[39m[32m 11[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Dashboard profile completion indicators[2m > [22mshows normal dashboard when profile is complete[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+ [31m❯[39m src/components/profile/__tests__/PersonalInfoCard.test.jsx [2m([22m[2m13 tests[22m[2m | [22m[31m13 failed[39m[2m)[22m[32m 84[2mms[22m[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould render personal information fields[39m[32m 39[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould disable inputs when not editing[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould enable inputs when editing[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould call onProfileChange when input changes[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould display avatar preview when provided[39m[32m 5[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould show default avatar icon when no preview[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould show upload button when editing[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould show "Change Photo" when avatar exists and editing[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould show badge when new avatar file is selected[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould display all religion options[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould display accommodation type select[39m[32m 2[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould show message when no avatar uploaded and not editing[39m[32m 4[2mms[22m[39m
+[31m     → React is not defined[39m
+[31m   [31m×[31m PersonalInfoCard[2m > [22mshould have proper ARIA labels for accessibility[39m[32m 3[2mms[22m[39m
+[31m     → React is not defined[39m
+ [31m❯[39m src/__tests__/integration/authFlow.test.jsx [2m([22m[2m11 tests[22m[2m | [22m[31m10 failed[39m[2m)[22m[32m 31[2mms[22m[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mRegistration Flow[2m > [22mshould complete full registration flow[39m[32m 12[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mRegistration Flow[2m > [22mshould show validation errors for invalid input[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mRegistration Flow[2m > [22mshould handle registration errors[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mLogin Flow[2m > [22mshould successfully log in with valid credentials[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mLogin Flow[2m > [22mshould show error for invalid credentials[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mEmail Verification Flow[2m > [22mshould verify email from link[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mEmail Verification Flow[2m > [22mshould allow resending verification email[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mPassword Reset Flow[2m > [22mshould send password reset email[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mPassword Reset Flow[2m > [22mshould reset password with new password[39m[32m 2[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[31m   [31m×[31m Authentication Flow Integration Tests[2m > [22mPassword Reset Flow[2m > [22mshould validate password requirements[39m[32m 1[2mms[22m[39m
+[31m     → [vitest] No "AuthProvider" export is defined on the "@/contexts/AuthContext" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+   [32m✓[39m Authentication Flow Integration Tests[2m > [22mComplete Authentication Cycle[2m > [22mshould complete full cycle: register → verify → login → logout[32m 2[2mms[22m[39m
+ [31m❯[39m src/components/location/__tests__/GccLocationSelector.test.jsx [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 16[2mms[22m[39m
+[31m   [31m×[31m GccLocationSelector[2m > [22mallows selecting country, state and suburb with typeahead[39m[32m 13[2mms[22m[39m
+[31m     → [vitest] No "BrowserRouter" export is defined on the "react-router-dom" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+[39m
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/ui/__tests__/MultiSelect.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/ui/__tests__/MultiSelect.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/maids/__tests__/MaidCard.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/maids/__tests__/MaidCard.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/contexts/__tests__/AuthContext.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/contexts/__tests__/AuthContext.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/ui/__tests__/Button.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/ui/__tests__/Button.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/ui/__tests__/MultiSelect.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/maids/__tests__/MaidCard.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/contexts/__tests__/AuthContext.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/ui/__tests__/Button.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/hooks/__tests__/useGccLocations.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/hooks/__tests__/useGccLocations.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | packages/domain/identity/__tests__/User.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/hooks/__tests__/useGccLocations.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | packages/domain/identity/__tests__/User.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/billingService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/billingService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/paymentIdempotencyService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/paymentIdempotencyService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | packages/domain/identity/__tests__/User.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/services/__tests__/billingService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/lib/__tests__/displayName.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/lib/__tests__/displayName.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/services/__tests__/paymentIdempotencyService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/services/__tests__/twilioService.test.js
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/services/__tests__/twilioService.test.js
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/components/profile/completion/__tests__/UnifiedSponsorCompletionForm.autosave.test.jsx
+[22m[39m[SimpleDatabaseClient] Simple local database initialized
+
+[90mstdout[2m | src/components/profile/completion/__tests__/UnifiedSponsorCompletionForm.autosave.test.jsx
+[22m[39m[DatabaseClient] ✅ Local database client initialized
+[DatabaseClient] Database mode: Local Storage
+
+[90mstdout[2m | src/lib/__tests__/displayName.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/services/__tests__/twilioService.test.js
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+[90mstdout[2m | src/components/profile/completion/__tests__/UnifiedSponsorCompletionForm.autosave.test.jsx
+[22m[39m[StripeConfig] Stripe configuration loaded successfully
+
+ [32m✓[39m src/hooks/__tests__/useGccLocations.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/contexts/__tests__/AuthContext.test.jsx [2m([22m[2m10 tests[22m[2m)[22m[32m 100[2mms[22m[39m
+ [32m✓[39m src/lib/__tests__/displayName.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m packages/domain/identity/__tests__/User.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m src/services/__tests__/billingService.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+ [32m✓[39m src/services/__tests__/paymentIdempotencyService.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m src/services/__tests__/twilioService.test.js [2m([22m[2m40 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m src/components/maids/__tests__/MaidCard.test.jsx [2m([22m[2m5 tests[22m[2m)[22m[32m 288[2mms[22m[39m
+ [32m✓[39m src/components/ui/__tests__/Button.test.jsx [2m([22m[2m8 tests[22m[2m)[22m[33m 402[2mms[22m[39m
+ [2m[90m↓[39m[22m src/components/profile/completion/__tests__/UnifiedSponsorCompletionForm.autosave.test.jsx [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+ [32m✓[39m src/components/ui/__tests__/MultiSelect.test.jsx [2m([22m[2m1 test[22m[2m)[22m[32m 192[2mms[22m[39m
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx[2m > [22m[2mAsyncErrorBoundary[2m > [22m[2mshould handle retry functionality
+[22m[39m[SessionManager] 📊 Initializing session manager...
+[SessionManager] ⏰ Session refresh interval started
+[SessionManager] ✅ Session manager initialized
+
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx[2m > [22m[2mAsyncErrorBoundary[2m > [22m[2mshould handle online/offline status changes
+[22m[39m[SessionManager] 📶 Connection restored, checking session...
+
+[90mstdout[2m | src/components/common/__tests__/AsyncErrorBoundary.test.jsx[2m > [22m[2mAsyncErrorBoundary[2m > [22m[2mshould handle online/offline status changes
+[22m[39m[SessionManager] ❌ No active session found
+
+ [32m✓[39m src/components/common/__tests__/AsyncErrorBoundary.test.jsx [2m([22m[2m14 tests[22m[2m)[22m[33m 2226[2mms[22m[39m
+   [33m[2m✓[22m[39m AsyncErrorBoundary[2m > [22mshould handle retry functionality [33m 1047[2mms[22m[39m
+   [33m[2m✓[22m[39m AsyncErrorBoundary[2m > [22mshould show retry count when retries have been attempted [33m 1040[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m19 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (31)[39m
+[2m      Tests [22m [1m[31m123 failed[39m[22m[2m | [22m[1m[32m205 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (329)[39m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 11:04:32
+[2m   Duration [22m 8.87s[2m (transform 4.53s, setup 34.74s, collect 8.84s, tests 5.06s, environment 41.21s, prepare 8.52s)[22m
+

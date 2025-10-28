@@ -1,0 +1,116 @@
+name-template: v$RESOLVED_VERSION
+tag-template: v$RESOLVED_VERSION
+prerelease: true
+prerelease-identifier: alpha
+
+categories:
+  - title: 🚀 Features
+    labels:
+      - feat
+      - feature
+      - enhancement
+  - title: 🐛 Fixes
+    labels:
+      - fix
+      - bug
+      - hotfix
+  - title: 🧰 Maintenance
+    labels:
+      - chore
+      - refactor
+      - deps
+      - dependencies
+  - title: 🧪 Tests
+    labels:
+      - test
+      - tests
+  - title: 📚 Docs
+    labels:
+      - docs
+  - title: ⚙️ CI/CD
+    labels:
+      - ci
+      - build
+
+version-resolver:
+  major:
+    labels:
+      - major
+      - breaking change
+      - breaking
+  minor:
+    labels:
+      - minor
+      - feat
+      - feature
+      - enhancement
+  patch:
+    labels:
+      - patch
+      - fix
+      - bug
+      - hotfix
+  default: patch
+
+change-template: '- $TITLE (#$NUMBER) — @$AUTHOR'
+
+template: |
+  ## Changes
+
+  $CHANGES
+
+  ---
+  This is an automatically generated draft prerelease. When ready, publish as a prerelease to keep official release delayed.
+
+autolabeler:
+  - label: feat
+    title:
+      - '/^feat(\(.*\))?:/i'
+  - label: fix
+    title:
+      - '/^fix(\(.*\))?:/i'
+  - label: docs
+    title:
+      - '/^docs(\(.*\))?:/i'
+    files:
+      - '*.md'
+      - 'docs/**'
+      - 'README.md'
+  - label: test
+    title:
+      - '/^test(s)?(\(.*\))?:/i'
+    files:
+      - '**/*.test.*'
+      - 'src/**/__tests__/**'
+  - label: ci
+    title:
+      - '/^ci(\(.*\))?:/i'
+    files:
+      - '.github/workflows/**'
+  - label: chore
+    title:
+      - '/^chore(\(.*\))?:/i'
+  - label: refactor
+    title:
+      - '/^refactor(\(.*\))?:/i'
+  - label: deps
+    title:
+      - '/^deps(\(.*\))?:/i'
+    files:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'pnpm-lock.yaml'
+      - 'yarn.lock'
+  - label: build
+    title:
+      - '/^build(\(.*\))?:/i'
+    files:
+      - 'vite.config.js'
+      - 'babel.config.json'
+      - 'tailwind.config.js'
+      - 'postcss.config.js'
+  - label: major
+    title:
+      - '/^.+!:/'
+    body:
+      - '/BREAKING CHANGE/i'

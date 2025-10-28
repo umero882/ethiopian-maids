@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(DATABASE_URL=\"postgres://postgres.kstoksqbhmxnrmspfywm:zU8s5wq7lJvc5bP1@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require\" NODE_TLS_REJECT_UNAUTHORIZED=0 node:*)",
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

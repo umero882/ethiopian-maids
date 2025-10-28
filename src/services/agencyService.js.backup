@@ -1,0 +1,1962 @@
+import { supabase } from '@/lib/databaseClient';
+import { databaseService } from './databaseService';
+
+// Check if migration is needed on service initialization
+let migrationChecked = false;
+
+// Utility function to safely store data in localStorage with quota management
+const safeLocalStorageSet = (key, data) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    if (
+      error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    ) {
+      console.warn(
+        `localStorage quota exceeded for key: ${key}. Attempting to clear old data...`
+      );
+
+      // Try to clear some space by removing older entries
+      try {
+        const existingData = JSON.parse(localStorage.getItem(key) || '[]');
+        if (Array.isArray(existingData) && existingData.length > 10) {
+          // Keep only the most recent 10 entries
+          const recentData = existingData.slice(-10);
+          localStorage.setItem(key, JSON.stringify(recentData));
+          console.log(
+            `Cleared old entries from ${key}, keeping ${recentData.length} most recent items`
+          );
+
+          // Try storing the new data again
+          const updatedData = [...recentData, ...data];
+          localStorage.setItem(key, JSON.stringify(updatedData));
+          return true;
+        }
+      } catch (clearError) {
+        console.warn(
+          `Failed to clear localStorage for key: ${key}`,
+          clearError
+        );
+        // As a last resort, clear the entire key
+        localStorage.removeItem(key);
+        try {
+          localStorage.setItem(key, JSON.stringify(data));
+          return true;
+        } catch (finalError) {
+          console.error(
+            `Failed to store data in localStorage even after clearing: ${key}`,
+            finalError
+          );
+        }
+      }
+    } else {
+      console.error(`localStorage error for key: ${key}`, error);
+    }
+    return false;
+  }
+};
+
+// Utility function to clear localStorage when it gets too full
+const clearOldLocalStorageData = () => {
+  try {
+    const keys = ['agency_maids', 'processed_images', 'maid_profiles'];
+    keys.forEach((key) => {
+      const data = JSON.parse(localStorage.getItem(key) || '[]');
+      if (Array.isArray(data) && data.length > 20) {
+        // Keep only the most recent 10 items
+        const recentData = data.slice(-10);
+        localStorage.setItem(key, JSON.stringify(recentData));
+        console.log(
+          `Cleared old data from ${key}, kept ${recentData.length} recent items`
+        );
+      }
+    });
+  } catch (error) {
+    console.warn('Error clearing old localStorage data:', error);
+  }
+};
+
+// Clear old localStorage data on service initialization to prevent quota issues
+if (USE_MOCK_DATA) {
+  clearOldLocalStorageData();
+}
+
+// For development/demo purposes, we'll use mock data
+// In a production environment, these would be actual API calls to your backend
+const mockMaids = [
+  {
+    id: '1',
+    name: 'Sarah Johnson',
+    country: 'Ethiopia',
+    experience: '5 years',
+    status: 'active',
+    skills: ['Childcare', 'Cooking', 'Cleaning'],
+    postedDate: '2025-05-15',
+    agencyNotes: 'Very good with children; Previous experience with newborns',
+    images: [
+      {
+        id: 'img1',
+        maid_id: '1',
+        file_url:
+          'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face',
+        file_name: 'sarah-profile.jpg',
+        is_primary: true,
+        display_order: 0,
+        created_at: '2025-05-15T10:00:00Z',
+      },
+    ],
+  },
+  {
+    id: '2',
+    name: 'Maria Garcia',
+    country: 'Philippines',
+    experience: '3 years',
+    status: 'pending',
+    skills: ['Elder Care', 'Cooking', 'Cleaning', 'Medication Assist'],
+    postedDate: '2025-06-01',
+    agencyNotes:
+      'Specialized in elderly care; Has nursing assistant certification',
+    images: [
+      {
+        id: 'img2',
+        maid_id: '2',
+        file_url:
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
+        file_name: 'maria-profile.jpg',
+        is_primary: true,
+        display_order: 0,
+        created_at: '2025-06-01T10:00:00Z',
+      },
+    ],
+  },
+  {
+    id: '3',
+    name: 'Amina Desta',
+    country: 'Ethiopia',
+    experience: '2 years',
+    status: 'placed',
+    skills: ['Childcare', 'Cleaning', 'Laundry'],
+    postedDate: '2025-04-20',
+    agencyNotes:
+      'Currently placed with the Johnson family; Contract ends in August',
+    images: [
+      {
+        id: 'img3',
+        maid_id: '3',
+        file_url:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
+        file_name: 'amina-profile.jpg',
+        is_primary: true,
+        display_order: 0,
+        created_at: '2025-04-20T10:00:00Z',
+      },
+    ],
+  },
+  {
+    id: '4',
+    name: 'Fatima Ahmed',
+    country: 'Kenya',
+    experience: '7 years',
+    status: 'active',
+    skills: ['Cooking', 'Cleaning', 'Pet Care', 'Driving'],
+    postedDate: '2025-05-28',
+    agencyNotes:
+      "Has driver's license; Experienced with meal planning for large families",
+    images: [
+      {
+        id: 'img4',
+        maid_id: '4',
+        file_url:
+          'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=face',
+        file_name: 'fatima-profile.jpg',
+        is_primary: true,
+        display_order: 0,
+        created_at: '2025-05-28T10:00:00Z',
+      },
+    ],
+  },
+  {
+    id: '5',
+    name: 'Jing Li',
+    country: 'Philippines',
+    experience: '4 years',
+    status: 'active',
+    skills: ['Childcare', 'Cooking', 'Cleaning', 'English Speaking'],
+    postedDate: '2025-06-05',
+    agencyNotes:
+      'Fluent in English and Mandarin; Good with school-aged children',
+    images: [
+      {
+        id: 'img5',
+        maid_id: '5',
+        file_url:
+          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
+        file_name: 'jing-profile.jpg',
+        is_primary: true,
+        display_order: 0,
+        created_at: '2025-06-05T10:00:00Z',
+      },
+    ],
+  },
+];
+
+const mockInquiries = [
+  {
+    id: '1',
+    sponsorId: 'sp1',
+    sponsorName: 'Ahmed Al Mansouri',
+    sponsorEmail: 'ahmed@example.com',
+    sponsorPhone: '+971 50 123 4567',
+    maidId: '1',
+    maidName: 'Sarah Johnson',
+    status: 'new',
+    inquiryDate: '2025-06-15',
+    initialMessage:
+      'I am interested in hiring Sarah for my family. We have two children, ages 3 and 5. Could you provide more information about her experience with young children? Also, what is your policy regarding time off?',
+    messages: [],
+  },
+  {
+    id: '2',
+    sponsorId: 'sp2',
+    sponsorName: 'Mohammed Al Qasimi',
+    sponsorEmail: 'mohammed@example.com',
+    sponsorPhone: '+971 55 987 6543',
+    maidId: '4',
+    maidName: 'Fatima Ahmed',
+    status: 'contacted',
+    inquiryDate: '2025-06-10',
+    initialMessage:
+      "Hello, I'm looking for a maid who can cook and is comfortable with driving. Fatima's profile caught my attention. Could you tell me more about her cooking specialties and driving experience?",
+    messages: [
+      {
+        id: 'm1',
+        sender: 'agency',
+        text: "Thank you for your interest in Fatima. She has extensive experience cooking various cuisines including Middle Eastern, Asian, and Western dishes. She has held a valid driver's license for 5 years and is comfortable driving in the city. Would you like to schedule an interview?",
+        timestamp: '2025-06-10T14:35:00Z',
+      },
+      {
+        id: 'm2',
+        sender: 'sponsor',
+        text: 'That sounds great. Yes, I would like to schedule an interview. What are the available dates next week?',
+        timestamp: '2025-06-11T09:15:00Z',
+      },
+    ],
+  },
+  {
+    id: '3',
+    sponsorId: 'sp3',
+    sponsorName: 'Fatima Al Zaabi',
+    sponsorEmail: 'fatima@example.com',
+    sponsorPhone: '+971 54 567 8901',
+    maidId: '5',
+    maidName: 'Jing Li',
+    status: 'approved',
+    inquiryDate: '2025-06-08',
+    initialMessage:
+      "I'm looking for a maid who can help with my two school-aged children and handle general housekeeping. Jing's profile seems to match what we need. What are the next steps for hiring her?",
+    messages: [
+      {
+        id: 'm1',
+        sender: 'agency',
+        text: 'Thank you for your interest in Jing. She is indeed experienced with school-aged children and is very organized with housekeeping. The next steps would be to arrange an interview, and if both parties are satisfied, we can proceed with the paperwork. Would you like to schedule an interview?',
+        timestamp: '2025-06-08T16:20:00Z',
+      },
+      {
+        id: 'm2',
+        sender: 'sponsor',
+        text: "Yes, that would be great. I'm available any weekday after 5pm.",
+        timestamp: '2025-06-09T10:45:00Z',
+      },
+      {
+        id: 'm3',
+        sender: 'agency',
+        text: "Perfect. Let's schedule the interview for this Wednesday at 5:30pm at our office. Please bring your ID and proof of residence. Looking forward to meeting you.",
+        timestamp: '2025-06-09T13:30:00Z',
+      },
+      {
+        id: 'm4',
+        sender: 'sponsor',
+        text: 'Confirmed for Wednesday at 5:30pm. Thank you!',
+        timestamp: '2025-06-09T14:05:00Z',
+      },
+    ],
+  },
+  {
+    id: '4',
+    sponsorId: 'sp4',
+    sponsorName: 'Sara Al Nahyan',
+    sponsorEmail: 'sara@example.com',
+    sponsorPhone: '+971 56 234 5678',
+    maidId: '2',
+    maidName: 'Maria Garcia',
+    status: 'rejected',
+    inquiryDate: '2025-06-05',
+    initialMessage:
+      "My mother needs care assistance. I'm interested in Maria as she has experience with elder care. What are her qualifications regarding medical assistance? Is she available for immediate placement?",
+    messages: [
+      {
+        id: 'm1',
+        sender: 'agency',
+        text: 'Thank you for your inquiry about Maria. She has experience as a nursing assistant and can help with basic medication reminders and monitoring. However, she is not qualified for more advanced medical tasks. Currently, her documentation is still being processed, so she would not be available for immediate placement. Would you still be interested?',
+        timestamp: '2025-06-05T11:20:00Z',
+      },
+      {
+        id: 'm2',
+        sender: 'sponsor',
+        text: "We need someone who can start immediately and who has more advanced medical training. I'll have to look elsewhere. Thank you for your response.",
+        timestamp: '2025-06-06T09:10:00Z',
+      },
+      {
+        id: 'm3',
+        sender: 'agency',
+        text: "I understand your requirements. We currently don't have maids with advanced medical training available, as this would typically require a licensed nurse. We wish you the best in finding suitable care for your mother.",
+        timestamp: '2025-06-06T10:45:00Z',
+      },
+    ],
+  },
+  {
+    id: '5',
+    sponsorId: 'sp5',
+    sponsorName: 'Khalid Al Maktoum',
+    sponsorEmail: 'khalid@example.com',
+    sponsorPhone: '+971 52 345 6789',
+    maidId: '1',
+    maidName: 'Sarah Johnson',
+    status: 'new',
+    inquiryDate: '2025-06-17',
+    initialMessage:
+      "We're a family of four looking for a full-time maid who can handle childcare, cooking, and cleaning. Sarah's profile looks promising. What is her salary expectation, and does she have any restrictions regarding working hours?",
+    messages: [],
+  },
+];
+
+const mockAgencySettings = {
+  profile: {
+    agencyName: 'Ethio Maids Agency',
+    contactEmail: 'contact@ethiomaids.com',
+    phone: '+971 4 123 4567',
+    address: 'Sheikh Zayed Road, Dubai, UAE',
+    description:
+      'Ethio Maids Agency is a premier provider of domestic staffing solutions, specializing in placing qualified Ethiopian and Filipino maids with families across the UAE.',
+    website: 'www.ethiomaids.com',
+  },
+  notifications: {
+    emailNotifications: true,
+    inAppNotifications: true,
+    notifyOnNewInquiries: true,
+    notifyOnStatusChanges: true,
+    notifyOnMessages: true,
+    marketingEmails: false,
+  },
+  security: {
+    twoFactorAuth: false,
+    loginNotifications: true,
+    dataSharing: false,
+  },
+};
+
+// Helper function to simulate API delay
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Helper to generate ID
+const generateId = () => {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+// Image upload and management functions
+const uploadImageToSupabase = async (file, path) => {
+  if (USE_MOCK_DATA) {
+    // Mock implementation - return a fake URL
+    return {
+      data: {
+        path: `mock/${path}`,
+        publicUrl: `https://mock-storage.com/${path}`,
+      },
+      error: null,
+    };
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('user-uploads')
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(path);
+
+    return {
+      data: { ...data, publicUrl: urlData.publicUrl },
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return { data: null, error };
+  }
+};
+
+const deleteImageFromSupabase = async (path) => {
+  if (USE_MOCK_DATA) {
+    return { data: null, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('user-uploads')
+      .remove([path]);
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return { data: null, error };
+  }
+};
+
+// Document upload and management functions
+const uploadDocumentToSupabase = async (file, path) => {
+  if (USE_MOCK_DATA) {
+    // Mock implementation - return a fake URL
+    return {
+      data: {
+        path: `mock/${path}`,
+        publicUrl: `https://mock-storage.com/${path}`,
+      },
+      error: null,
+    };
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('user-uploads')
+      .upload(path, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    // Get public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('user-uploads')
+      .getPublicUrl(path);
+
+    return {
+      data: {
+        path: data.path,
+        publicUrl: publicUrlData.publicUrl,
+      },
+      error: null,
+    };
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    return { data: null, error };
+  }
+};
+
+const saveDocumentMetadata = async (documentData) => {
+  if (USE_MOCK_DATA) {
+    return { data: { id: generateId(), ...documentData }, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('maid_documents')
+      .insert([documentData])
+      .select()
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error saving document metadata:', error);
+    return { data: null, error };
+  }
+};
+
+const saveImageMetadata = async (imageData) => {
+  if (USE_MOCK_DATA) {
+    return { data: { id: generateId(), ...imageData }, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('maid_images')
+      .insert([imageData])
+      .select()
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error saving image metadata:', error);
+    return { data: null, error };
+  }
+};
+
+const updateImageMetadata = async (imageId, updates) => {
+  if (USE_MOCK_DATA) {
+    return { data: { id: imageId, ...updates }, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('maid_images')
+      .update(updates)
+      .eq('id', imageId)
+      .select()
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error updating image metadata:', error);
+    return { data: null, error };
+  }
+};
+
+const deleteImageMetadata = async (imageId) => {
+  if (USE_MOCK_DATA) {
+    return { data: null, error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('maid_images')
+      .delete()
+      .eq('id', imageId);
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error deleting image metadata:', error);
+    return { data: null, error };
+  }
+};
+
+const getMaidImages = async (maidId) => {
+  if (USE_MOCK_DATA) {
+    return { data: [], error: null };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('maid_images')
+      .select('*')
+      .eq('maid_id', maidId)
+      .order('display_order', { ascending: true });
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error fetching maid images:', error);
+    return { data: null, error };
+  }
+};
+
+// Helper function to get primary image URL for a maid
+const getPrimaryImageUrl = (maid) => {
+  if (!maid) return null;
+
+  // Check if maid has images array
+  if (maid.images && Array.isArray(maid.images) && maid.images.length > 0) {
+    // Find primary image
+    const primaryImage = maid.images.find((img) => img.is_primary === true);
+    if (primaryImage && primaryImage.file_url) {
+      return primaryImage.file_url;
+    }
+
+    // If no primary image, return first image
+    const firstImage = maid.images[0];
+    if (firstImage && firstImage.file_url) {
+      return firstImage.file_url;
+    }
+  }
+
+  // Check for legacy profileImageUrl field
+  if (maid.profileImageUrl) {
+    return maid.profileImageUrl;
+  }
+
+  // Check for legacy image field
+  if (maid.image) {
+    return maid.image;
+  }
+
+  return null;
+};
+
+class AgencyService {
+  constructor() {
+    this.checkMigrationNeeded();
+  }
+
+  async checkMigrationNeeded() {
+    if (!migrationChecked && !USE_MOCK_DATA) {
+      migrationChecked = true;
+      const needsMigration = await migrationService.isMigrationNeeded();
+
+      if (needsMigration) {
+        console.log('🔄 Migration needed - localStorage data found');
+        // Auto-migrate in background
+        migrationService.migrateAllData().then((result) => {
+          if (result.success) {
+            console.log('✅ Auto-migration completed successfully');
+          } else {
+            console.warn('⚠️ Auto-migration had issues:', result);
+          }
+        });
+      }
+    }
+  }
+
+  // Maids
+  async getAgencyMaids(filters = {}) {
+    if (!USE_MOCK_DATA) {
+      // Use database service instead of localStorage
+      return await databaseService.getMaidProfiles(filters);
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      // Combine mock data with localStorage data
+      let allMaids = [...mockMaids];
+
+      // Get maids from localStorage (newly added ones)
+      try {
+        const storedMaids = JSON.parse(
+          localStorage.getItem('agency_maids') || '[]'
+        );
+        if (Array.isArray(storedMaids) && storedMaids.length > 0) {
+          allMaids = [...allMaids, ...storedMaids];
+        }
+      } catch (error) {
+        console.warn('Error loading stored maids:', error);
+      }
+
+      // Sort by creation date/registration date (most recent first)
+      allMaids.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.postedDate || '2025-01-01');
+        const dateB = new Date(b.createdAt || b.postedDate || '2025-01-01');
+        return dateB - dateA; // Descending order (newest first)
+      });
+
+      let filteredMaids = allMaids;
+
+      // Apply filters if provided
+      if (filters.status && filters.status !== 'all') {
+        filteredMaids = filteredMaids.filter(
+          (maid) => maid.status === filters.status
+        );
+      }
+
+      if (filters.search) {
+        const searchTerm =
+          filters.search && typeof filters.search === 'string'
+            ? filters.search.toLowerCase()
+            : '';
+        filteredMaids = filteredMaids.filter((maid) => {
+          try {
+            // Handle both old mock data format and new form data format
+            const maidName =
+              maid.name ||
+              `${maid.firstName || ''} ${maid.middleName || ''} ${maid.lastName || ''}`.trim() ||
+              maid.fullName ||
+              '';
+            const maidCountry = maid.country || maid.nationality || '';
+            const maidSkills = maid.skills || [];
+
+            return (
+              (maidName &&
+                typeof maidName === 'string' &&
+                maidName.toLowerCase().includes(searchTerm)) ||
+              (maidCountry &&
+                typeof maidCountry === 'string' &&
+                maidCountry.toLowerCase().includes(searchTerm)) ||
+              (Array.isArray(maidSkills) &&
+                maidSkills.some(
+                  (skill) =>
+                    skill &&
+                    typeof skill === 'string' &&
+                    skill.toLowerCase().includes(searchTerm)
+                ))
+            );
+          } catch (error) {
+            console.warn('Error filtering maid:', error, maid);
+            return false; // Exclude this maid from results if there's an error
+          }
+        });
+      }
+
+      return { data: filteredMaids, error: null };
+    } catch (error) {
+      console.error('Error fetching agency maids:', error);
+      return { data: null, error };
+    }
+  }
+
+  async getAgencyMaidById(id) {
+    if (!USE_MOCK_DATA) {
+      console.warn('getAgencyMaidById not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(500);
+
+      // First, search in mock data
+      let maid = mockMaids.find((m) => m.id === id);
+
+      // If not found in mock data, search in localStorage data
+      if (!maid) {
+        try {
+          const storedMaids = JSON.parse(
+            localStorage.getItem('agency_maids') || '[]'
+          );
+          if (Array.isArray(storedMaids) && storedMaids.length > 0) {
+            maid = storedMaids.find((m) => m.id === id);
+          }
+        } catch (error) {
+          console.warn('Error loading stored maids for detail view:', error);
+        }
+      }
+
+      if (!maid) {
+        return {
+          data: null,
+          error: { message: 'Maid not found' },
+        };
+      }
+
+      return { data: maid, error: null };
+    } catch (error) {
+      console.error('Error fetching maid details:', error);
+      return { data: null, error };
+    }
+  }
+
+  async addAgencyMaid(maidData) {
+    try {
+      // Simulate API delay
+      await delay(1000);
+
+      if (USE_MOCK_DATA) {
+        // Mock implementation with image handling
+        const newMaid = {
+          ...maidData,
+          id: generateId(),
+          postedDate: new Date().toISOString().split('T')[0],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        // Handle images if provided
+        if (maidData.images && maidData.images.length > 0) {
+          newMaid.images = maidData.images.map((img, index) => ({
+            id: generateId(),
+            maid_id: newMaid.id,
+            file_path: `mock/maids/${newMaid.id}/${img.name}`,
+            file_url: `https://mock-storage.com/maids/${newMaid.id}/${img.name}`,
+            file_name: img.name,
+            file_size: img.size,
+            mime_type: img.file?.type || 'image/jpeg',
+            is_primary: img.isPrimary || index === 0,
+            display_order: index,
+            created_at: new Date().toISOString(),
+          }));
+        }
+
+        // Handle passport document if provided
+        if (maidData.passportDocument) {
+          newMaid.passportDocument = {
+            id: generateId(),
+            maid_id: newMaid.id,
+            file_path: `mock/maids/${newMaid.id}/documents/${maidData.passportDocument.name}`,
+            file_url: `https://mock-storage.com/maids/${newMaid.id}/documents/${maidData.passportDocument.name}`,
+            file_name: maidData.passportDocument.name,
+            file_size: maidData.passportDocument.size,
+            mime_type: maidData.passportDocument.type,
+            document_type: 'passport',
+            created_at: new Date().toISOString(),
+          };
+        }
+
+        // Store in localStorage for mock persistence (without file objects to avoid quota issues)
+        const maidForStorage = {
+          ...newMaid,
+          // Remove file objects from images to prevent localStorage quota issues
+          images: newMaid.images
+            ? newMaid.images.map((img) => ({
+                ...img,
+                file: null, // Remove the actual file object
+              }))
+            : [],
+        };
+
+        // Use safe localStorage storage
+        const existingMaids = JSON.parse(
+          localStorage.getItem('agency_maids') || '[]'
+        );
+        existingMaids.push(maidForStorage);
+
+        const stored = safeLocalStorageSet('agency_maids', existingMaids);
+        if (!stored) {
+          console.warn(
+            'Failed to store maid data in localStorage, but maid was still created successfully'
+          );
+        }
+
+        // Also add to mockMaids array for immediate use with compatible format
+        const compatibleMaid = {
+          ...newMaid,
+          // Add compatible fields for search functionality
+          name:
+            newMaid.fullName ||
+            `${newMaid.firstName || ''} ${newMaid.middleName || ''} ${newMaid.lastName || ''}`.trim(),
+          country: newMaid.nationality || newMaid.country || '',
+          // Ensure skills is always an array
+          skills: Array.isArray(newMaid.skills) ? newMaid.skills : [],
+          // Add status if not present
+          status: newMaid.status || 'active',
+        };
+        mockMaids.push(compatibleMaid);
+
+        return { data: newMaid, error: null };
+      }
+
+      // Real Supabase implementation using database service
+      const maidId = generateId();
+
+      // Prepare maid data for database service
+      const profileData = {
+        id: maidId,
+        email: maidData.email || `${maidData.passport_number}@temp.com`,
+        ...maidData,
+      };
+
+      // Create maid profile using database service
+      const { data: maidProfile, error: maidError } =
+        await databaseService.createMaidProfile(profileData);
+
+      if (maidError) throw maidError;
+
+      // Handle image uploads if provided
+      let uploadedImages = [];
+      if (maidData.images && maidData.images.length > 0) {
+        for (let i = 0; i < maidData.images.length; i++) {
+          const image = maidData.images[i];
+
+          if (image.file) {
+            // Upload image using database service
+            const { data: uploadedImage, error: uploadError } =
+              await databaseService.uploadMaidImage(maidId, image.file);
+
+            if (uploadError) {
+              console.error('Error uploading image:', uploadError);
+              continue; // Skip this image but continue with others
+            }
+
+            // Set as primary if specified or if it's the first image
+            if (image.isPrimary || i === 0) {
+              await databaseService.setPrimaryImage(maidId, uploadedImage.id);
+            }
+
+            uploadedImages.push(uploadedImage);
+          }
+        }
+      }
+
+      // Handle passport document upload if provided
+      let uploadedPassportDocument = null;
+      if (maidData.passportDocument) {
+        const passportFile = maidData.passportDocument.file;
+        const fileName = `passport-${Date.now()}-${maidData.passportDocument.name}`;
+        const filePath = `maids/${maidId}/documents/${fileName}`;
+
+        // Upload passport document to Supabase Storage
+        const { data: uploadData, error: uploadError } =
+          await uploadDocumentToSupabase(passportFile, filePath);
+
+        if (uploadError) {
+          console.error('Error uploading passport document:', uploadError);
+        } else {
+          // Save passport document metadata
+          const documentMetadata = {
+            maid_id: maidId,
+            file_path: uploadData.path,
+            file_url: uploadData.publicUrl,
+            file_name: maidData.passportDocument.name,
+            file_size: maidData.passportDocument.size,
+            mime_type: maidData.passportDocument.type,
+            document_type: 'passport',
+            created_at: new Date().toISOString(),
+          };
+
+          const { data: savedDocument, error: metadataError } =
+            await saveDocumentMetadata(documentMetadata);
+
+          if (!metadataError && savedDocument) {
+            uploadedPassportDocument = savedDocument;
+          }
+        }
+      }
+
+      return {
+        data: {
+          ...maidProfile,
+          images: uploadedImages,
+          passportDocument: uploadedPassportDocument,
+        },
+        error: null,
+      };
+    } catch (error) {
+      console.error('Error adding maid:', error);
+      return { data: null, error };
+    }
+  }
+
+  async updateAgencyMaid(id, maidData) {
+    if (!USE_MOCK_DATA) {
+      console.warn('updateAgencyMaid not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      const maidIndex = mockMaids.findIndex((m) => m.id === id);
+
+      if (maidIndex === -1) {
+        return {
+          data: null,
+          error: { message: 'Maid not found' },
+        };
+      }
+
+      // Update the maid data
+      mockMaids[maidIndex] = {
+        ...mockMaids[maidIndex],
+        ...maidData,
+      };
+
+      return { data: mockMaids[maidIndex], error: null };
+    } catch (error) {
+      console.error('Error updating maid:', error);
+      return { data: null, error };
+    }
+  }
+
+  async removeAgencyMaid(id) {
+    if (!USE_MOCK_DATA) {
+      console.warn('removeAgencyMaid not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      const maidIndex = mockMaids.findIndex((m) => m.id === id);
+
+      if (maidIndex === -1) {
+        return {
+          data: null,
+          error: { message: 'Maid not found' },
+        };
+      }
+
+      // Remove the maid
+      const removedMaid = mockMaids.splice(maidIndex, 1)[0];
+
+      return { data: removedMaid, error: null };
+    } catch (error) {
+      console.error('Error removing maid:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Passport number validation method
+  async checkPassportUniqueness(passportNumber) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation - simulate some existing passport numbers
+        await delay(800); // Simulate API delay
+        const existingPassports = [
+          'A1234567',
+          'B9876543',
+          'C1111111',
+          'D5555555',
+        ];
+        const isUnique = !existingPassports.includes(
+          passportNumber.toUpperCase()
+        );
+
+        return {
+          data: { isUnique },
+          error: null,
+        };
+      }
+
+      // Real Supabase implementation
+      const { data, error } = await supabase.rpc(
+        'check_passport_number_uniqueness',
+        {
+          passport_num: passportNumber,
+        }
+      );
+
+      if (error) throw error;
+
+      return {
+        data: { isUnique: data },
+        error: null,
+      };
+    } catch (error) {
+      console.error('Error checking passport uniqueness:', error);
+      return {
+        data: null,
+        error,
+      };
+    }
+  }
+
+  // Image management methods
+  async uploadMaidImages(maidId, images) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation
+        const uploadedImages = images.map((img, index) => ({
+          id: generateId(),
+          maid_id: maidId,
+          file_path: `mock/maids/${maidId}/${img.name}`,
+          file_url: `https://mock-storage.com/maids/${maidId}/${img.name}`,
+          file_name: img.name,
+          file_size: img.size,
+          mime_type: img.file?.type || 'image/jpeg',
+          is_primary: img.isPrimary || index === 0,
+          display_order: index,
+          created_at: new Date().toISOString(),
+        }));
+
+        return { data: uploadedImages, error: null };
+      }
+
+      // Real implementation
+      const uploadedImages = [];
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const fileName = `${Date.now()}-${i}-${image.name}`;
+        const filePath = `maids/${maidId}/${fileName}`;
+
+        const { data: uploadData, error: uploadError } =
+          await uploadImageToSupabase(image.file, filePath);
+
+        if (uploadError) continue;
+
+        const imageMetadata = {
+          maid_id: maidId,
+          file_path: uploadData.path,
+          file_url: uploadData.publicUrl,
+          file_name: image.name,
+          file_size: image.size,
+          mime_type: image.file.type,
+          is_primary: image.isPrimary || i === 0,
+          display_order: i,
+          created_at: new Date().toISOString(),
+        };
+
+        const { data: savedImage, error: metadataError } =
+          await saveImageMetadata(imageMetadata);
+        if (!metadataError && savedImage) {
+          uploadedImages.push(savedImage);
+        }
+      }
+
+      return { data: uploadedImages, error: null };
+    } catch (error) {
+      console.error('Error uploading maid images:', error);
+      return { data: null, error };
+    }
+  }
+
+  async getMaidImages(maidId) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation - return empty array for now
+        return { data: [], error: null };
+      }
+
+      return await getMaidImages(maidId);
+    } catch (error) {
+      console.error('Error fetching maid images:', error);
+      return { data: null, error };
+    }
+  }
+
+  async updateImageOrder(maidId, imageOrders) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation
+        return { data: imageOrders, error: null };
+      }
+
+      // Update display order for multiple images
+      const updates = [];
+      for (const { imageId, displayOrder } of imageOrders) {
+        const { data, error } = await updateImageMetadata(imageId, {
+          display_order: displayOrder,
+          updated_at: new Date().toISOString(),
+        });
+
+        if (!error && data) {
+          updates.push(data);
+        }
+      }
+
+      return { data: updates, error: null };
+    } catch (error) {
+      console.error('Error updating image order:', error);
+      return { data: null, error };
+    }
+  }
+
+  async setPrimaryImage(maidId, imageId) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation
+        return { data: { id: imageId, is_primary: true }, error: null };
+      }
+
+      // First, remove primary status from all images of this maid
+      const { data: allImages } = await getMaidImages(maidId);
+      if (allImages) {
+        for (const image of allImages) {
+          if (image.is_primary) {
+            await updateImageMetadata(image.id, {
+              is_primary: false,
+              updated_at: new Date().toISOString(),
+            });
+          }
+        }
+      }
+
+      // Set the new primary image
+      const { data, error } = await updateImageMetadata(imageId, {
+        is_primary: true,
+        updated_at: new Date().toISOString(),
+      });
+
+      return { data, error };
+    } catch (error) {
+      console.error('Error setting primary image:', error);
+      return { data: null, error };
+    }
+  }
+
+  async deleteMaidImage(imageId) {
+    try {
+      if (USE_MOCK_DATA) {
+        // Mock implementation
+        return { data: null, error: null };
+      }
+
+      // Get image metadata first to get file path
+      const { data: images } = await supabase
+        .from('maid_images')
+        .select('file_path')
+        .eq('id', imageId)
+        .single();
+
+      if (images?.file_path) {
+        // Delete from storage
+        await deleteImageFromSupabase(images.file_path);
+      }
+
+      // Delete metadata
+      return await deleteImageMetadata(imageId);
+    } catch (error) {
+      console.error('Error deleting maid image:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Inquiries
+  async getAgencyInquiries(filters = {}) {
+    if (!USE_MOCK_DATA) {
+      console.warn('getAgencyInquiries not implemented for real backend');
+      return { data: [], error: null };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      let filteredInquiries = [...mockInquiries];
+
+      // Apply filters if provided
+      if (filters.status && filters.status !== 'all') {
+        filteredInquiries = filteredInquiries.filter(
+          (inquiry) => inquiry.status === filters.status
+        );
+      }
+
+      if (filters.search) {
+        const searchTerm =
+          filters.search && typeof filters.search === 'string'
+            ? filters.search.toLowerCase()
+            : '';
+        filteredInquiries = filteredInquiries.filter((inquiry) => {
+          try {
+            const sponsorName = inquiry.sponsorName || '';
+            const maidName = inquiry.maidName || '';
+
+            return (
+              (sponsorName &&
+                typeof sponsorName === 'string' &&
+                sponsorName.toLowerCase().includes(searchTerm)) ||
+              (maidName &&
+                typeof maidName === 'string' &&
+                maidName.toLowerCase().includes(searchTerm))
+            );
+          } catch (error) {
+            console.warn('Error filtering inquiry:', error, inquiry);
+            return false; // Exclude this inquiry from results if there's an error
+          }
+        });
+      }
+
+      return { data: filteredInquiries, error: null };
+    } catch (error) {
+      console.error('Error fetching inquiries:', error);
+      return { data: null, error };
+    }
+  }
+
+  async getInquiryById(id) {
+    if (!USE_MOCK_DATA) {
+      console.warn('getInquiryById not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(500);
+
+      const inquiry = mockInquiries.find((i) => i.id === id);
+
+      if (!inquiry) {
+        return {
+          data: null,
+          error: { message: 'Inquiry not found' },
+        };
+      }
+
+      return { data: inquiry, error: null };
+    } catch (error) {
+      console.error('Error fetching inquiry details:', error);
+      return { data: null, error };
+    }
+  }
+
+  async updateInquiryStatus(id, status) {
+    if (!USE_MOCK_DATA) {
+      console.warn('updateInquiryStatus not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      const inquiryIndex = mockInquiries.findIndex((i) => i.id === id);
+
+      if (inquiryIndex === -1) {
+        return {
+          data: null,
+          error: { message: 'Inquiry not found' },
+        };
+      }
+
+      // Update the inquiry status
+      mockInquiries[inquiryIndex].status = status;
+
+      return { data: mockInquiries[inquiryIndex], error: null };
+    } catch (error) {
+      console.error('Error updating inquiry status:', error);
+      return { data: null, error };
+    }
+  }
+
+  async sendMessageToSponsor(inquiryId, messageText) {
+    if (!USE_MOCK_DATA) {
+      console.warn('sendMessageToSponsor not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      const inquiryIndex = mockInquiries.findIndex((i) => i.id === inquiryId);
+
+      if (inquiryIndex === -1) {
+        return {
+          data: null,
+          error: { message: 'Inquiry not found' },
+        };
+      }
+
+      // Create new message
+      const newMessage = {
+        id: generateId(),
+        sender: 'agency',
+        text: messageText,
+        timestamp: new Date().toISOString(),
+      };
+
+      // Add message to the inquiry
+      mockInquiries[inquiryIndex].messages.push(newMessage);
+
+      return { data: newMessage, error: null };
+    } catch (error) {
+      console.error('Error sending message:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Agency Profile Management
+  async getAgencyProfile(userId) {
+    try {
+      if (USE_MOCK_DATA) {
+        await delay(500);
+        return {
+          data: {
+            id: userId,
+            agency_name: 'Ethio Maids Agency',
+            license_number: 'AG-12345',
+            registration_country: 'United Arab Emirates',
+            established_year: 2018,
+            business_address: 'Sheikh Zayed Road, Dubai, UAE',
+            business_phone: '+971 4 123 4567',
+            website_url: 'www.ethiomaids.com',
+            contact_person_name: 'Ahmed Al-Rashid',
+            contact_person_title: 'General Manager',
+            specialization: ['Domestic Workers', 'Skilled Labor', 'Childcare'],
+            service_countries: ['UAE', 'Saudi Arabia', 'Kuwait', 'Qatar'],
+            placement_fee_percentage: 15.0,
+            guarantee_period_months: 6,
+            license_verified: true,
+            accreditation_bodies: [
+              'UAE Ministry of Labor',
+              'Dubai Municipality',
+            ],
+            certifications: ['ISO 9001', 'Labor Standards Certification'],
+            total_maids_managed: 150,
+            successful_placements: 500,
+            active_listings: 45,
+            average_rating: 4.7,
+            subscription_tier: 'premium',
+            subscription_expires_at: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+            ).toISOString(),
+            created_at: new Date(2018, 0, 1).toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          error: null,
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('agency_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      // If no profile exists, create a basic one
+      if (!data) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, email, phone, country')
+          .eq('id', userId)
+          .single();
+
+        const newAgencyProfile = {
+          id: userId,
+          agency_name: profile?.name || 'New Agency',
+          license_number: null,
+          registration_country: profile?.country || null,
+          established_year: new Date().getFullYear(),
+          business_address: null,
+          business_phone: profile?.phone || null,
+          website_url: null,
+          contact_person_name: null,
+          contact_person_title: null,
+          specialization: [],
+          service_countries: [],
+          placement_fee_percentage: null,
+          guarantee_period_months: 3,
+          license_verified: false,
+          accreditation_bodies: [],
+          certifications: [],
+          total_maids_managed: 0,
+          successful_placements: 0,
+          active_listings: 0,
+          average_rating: 0,
+          subscription_tier: 'basic',
+          subscription_expires_at: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const { data: createdProfile, error: createError } = await supabase
+          .from('agency_profiles')
+          .insert(newAgencyProfile)
+          .select()
+          .single();
+
+        if (createError) {
+          throw createError;
+        }
+
+        return { data: createdProfile, error: null };
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching agency profile:', error);
+      return { data: null, error };
+    }
+  }
+
+  async updateAgencyProfile(userId, profileData) {
+    try {
+      if (USE_MOCK_DATA) {
+        await delay(800);
+        return {
+          data: {
+            id: userId,
+            ...profileData,
+            updated_at: new Date().toISOString(),
+          },
+          error: null,
+        };
+      }
+
+      const { data, error } = await supabase
+        .from('agency_profiles')
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error updating agency profile:', error);
+      return { data: null, error };
+    }
+  }
+
+  async getAgencyAnalyticsData(userId) {
+    try {
+      if (USE_MOCK_DATA) {
+        await delay(600);
+        return {
+          data: {
+            totalMaids: 150,
+            activeMaids: 45,
+            successfulPlacements: 500,
+            pendingInquiries: 12,
+            monthlyRevenue: 45000,
+            averageRating: 4.7,
+            placementRate: 85,
+            clientSatisfaction: 92,
+            monthlyGrowth: 15,
+            topCountries: [
+              { country: 'UAE', count: 45 },
+              { country: 'Saudi Arabia', count: 32 },
+              { country: 'Kuwait', count: 28 },
+            ],
+            recentPlacements: [
+              {
+                id: 1,
+                maidName: 'Fatima Ahmed',
+                sponsorName: 'Al-Rashid Family',
+                date: '2024-01-15',
+                status: 'completed',
+              },
+              {
+                id: 2,
+                maidName: 'Meron Tadesse',
+                sponsorName: 'Johnson Family',
+                date: '2024-01-14',
+                status: 'completed',
+              },
+              {
+                id: 3,
+                maidName: 'Hanan Mohammed',
+                sponsorName: 'Smith Family',
+                date: '2024-01-13',
+                status: 'in_progress',
+              },
+            ],
+          },
+          error: null,
+        };
+      }
+
+      // Real implementation would aggregate data from multiple tables
+      const [maidsResult, inquiriesResult, placementsResult] =
+        await Promise.all([
+          supabase
+            .from('maid_profiles')
+            .select('id, status')
+            .eq('agent_id', userId),
+          supabase
+            .from('inquiries')
+            .select('id, status')
+            .eq('agency_id', userId),
+          supabase
+            .from('placements')
+            .select('id, status, created_at')
+            .eq('agency_id', userId),
+        ]);
+
+      const analyticsData = {
+        totalMaids: maidsResult.data?.length || 0,
+        activeMaids:
+          maidsResult.data?.filter((m) => m.status === 'active').length || 0,
+        successfulPlacements:
+          placementsResult.data?.filter((p) => p.status === 'completed')
+            .length || 0,
+        pendingInquiries:
+          inquiriesResult.data?.filter((i) => i.status === 'pending').length ||
+          0,
+        monthlyRevenue: 0, // Would need revenue tracking
+        averageRating: 4.5, // Would need rating aggregation
+        placementRate: 85,
+        clientSatisfaction: 90,
+        monthlyGrowth: 10,
+        topCountries: [],
+        recentPlacements: [],
+      };
+
+      return { data: analyticsData, error: null };
+    } catch (error) {
+      console.error('Error fetching agency analytics:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Agency Settings
+  async getAgencySettings() {
+    if (!USE_MOCK_DATA) {
+      console.warn('getAgencySettings not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(500);
+
+      return { data: mockAgencySettings, error: null };
+    } catch (error) {
+      console.error('Error fetching agency settings:', error);
+      return { data: null, error };
+    }
+  }
+
+  async updateAgencySettings(settings) {
+    if (!USE_MOCK_DATA) {
+      console.warn('updateAgencySettings not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      // Update only the provided sections
+      Object.keys(settings).forEach((section) => {
+        if (mockAgencySettings[section]) {
+          mockAgencySettings[section] = {
+            ...mockAgencySettings[section],
+            ...settings[section],
+          };
+        }
+      });
+
+      return { data: mockAgencySettings, error: null };
+    } catch (error) {
+      console.error('Error updating agency settings:', error);
+      return { data: null, error };
+    }
+  }
+
+  async changePassword(_passwordData) {
+    if (!USE_MOCK_DATA) {
+      console.warn('changePassword not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(1000);
+
+      // In a real application, this would verify the current password
+      // and update to the new password in the database
+
+      // For demo purposes, we'll just simulate success
+      return { data: { success: true }, error: null };
+    } catch (error) {
+      console.error('Error changing password:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Analytics data
+  async getAgencyAnalytics(_period = 'month') {
+    if (!USE_MOCK_DATA) {
+      console.warn('getAgencyAnalytics not implemented for real backend');
+      return { data: null, error: new Error('Not implemented') };
+    }
+
+    try {
+      // Simulate API delay
+      await delay(800);
+
+      // Mock analytics data
+      const analyticsData = {
+        // Added monthlyPlacementTrends that is required by the AgencyAnalyticsPage component
+        totalMaidsListed: 125,
+        activeMaids: 80,
+        pendingVerification: 15,
+        placementsThisMonth: 12,
+        averageResponseTime: '4.5 hours',
+        monthlyPlacementTrends: [
+          { month: 'Jan', placements: 8 },
+          { month: 'Feb', placements: 10 },
+          { month: 'Mar', placements: 12 },
+          { month: 'Apr', placements: 9 },
+          { month: 'May', placements: 15 },
+          { month: 'Jun', placements: 12 },
+        ],
+        quarterlyTrends: [
+          { quarter: 'Q1', placements: 33, revenue: 21450 },
+          { quarter: 'Q2', placements: 45, revenue: 29250 },
+          { quarter: 'Q3', placements: 55, revenue: 35750 },
+          { quarter: 'Q4', placements: 40, revenue: 26000 },
+        ],
+        conversionRate: [
+          { month: 'Jan', rate: 25 },
+          { month: 'Feb', rate: 32 },
+          { month: 'Mar', rate: 30 },
+          { month: 'Apr', rate: 28 },
+          { month: 'May', rate: 35 },
+          { month: 'Jun', rate: 40 },
+        ],
+        maidsByCountry: [
+          { name: 'Philippines', value: 45 },
+          { name: 'Indonesia', value: 30 },
+          { name: 'India', value: 20 },
+          { name: 'Kenya', value: 15 },
+          { name: 'Ethiopia', value: 10 },
+          { name: 'Others', value: 5 },
+        ],
+        maidsByStatus: [
+          { name: 'Active', value: 80 },
+          { name: 'Pending', value: 15 },
+          { name: 'Placed', value: 30 },
+        ],
+        inquiries: {
+          total: 28,
+          new: 12,
+          contacted: 8,
+          approved: 6,
+          rejected: 2,
+          // Chart data for the specified period
+          chartData: [
+            { date: '2025-05-22', count: 1 },
+            { date: '2025-05-25', count: 2 },
+            { date: '2025-05-28', count: 1 },
+            { date: '2025-06-01', count: 3 },
+            { date: '2025-06-05', count: 4 },
+            { date: '2025-06-08', count: 2 },
+            { date: '2025-06-10', count: 3 },
+            { date: '2025-06-12', count: 5 },
+            { date: '2025-06-15', count: 4 },
+            { date: '2025-06-18', count: 3 },
+          ],
+        },
+        placements: {
+          total: 15,
+          active: 8,
+          pending: 4,
+          completed: 3,
+          // Chart data for the specified period
+          chartData: [
+            { date: '2025-05-20', count: 1 },
+            { date: '2025-05-27', count: 1 },
+            { date: '2025-06-03', count: 2 },
+            { date: '2025-06-07', count: 1 },
+            { date: '2025-06-12', count: 3 },
+            { date: '2025-06-18', count: 0 },
+          ],
+        },
+        revenue: {
+          total: 12500,
+          thisMonth: 4200,
+          lastMonth: 3800,
+          // Chart data for the specified period
+          chartData: [
+            { date: '2025-05-15', amount: 800 },
+            { date: '2025-05-22', amount: 1200 },
+            { date: '2025-05-29', amount: 1800 },
+            { date: '2025-06-05', amount: 1500 },
+            { date: '2025-06-12', amount: 1400 },
+            { date: '2025-06-19', amount: 1300 },
+          ],
+        },
+        topMaids: [
+          { id: '1', name: 'Sarah Johnson', inquiries: 8, placements: 3 },
+          { id: '4', name: 'Fatima Ahmed', inquiries: 6, placements: 2 },
+          { id: '5', name: 'Jing Li', inquiries: 5, placements: 1 },
+        ],
+      };
+
+      return { data: analyticsData, error: null };
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Save processed image
+  async saveProcessedImage(maidId, processedImageData) {
+    try {
+      await delay(500);
+
+      if (USE_MOCK_DATA) {
+        // Mock implementation
+        const processedImage = {
+          id: generateId(),
+          maid_profile_id: maidId,
+          original_image_url: processedImageData.originalUrl,
+          processed_image_url: `https://mock-storage.com/processed/${maidId}/${Date.now()}.jpg`,
+          processing_type: processedImageData.processingType || 'combined',
+          processing_settings: processedImageData.settings || {},
+          file_size_original: processedImageData.originalSize,
+          file_size_processed: processedImageData.processedSize,
+          dimensions_original: processedImageData.originalDimensions,
+          dimensions_processed: processedImageData.processedDimensions,
+          is_primary: true,
+          created_at: new Date().toISOString(),
+        };
+
+        // Store in localStorage (without file objects to avoid quota issues)
+        const processedImageForStorage = {
+          ...processedImage,
+          file: null, // Remove the actual file object to prevent localStorage quota issues
+          original_file: null, // Remove original file object as well
+        };
+
+        // Use safe localStorage storage
+        const existingProcessed = JSON.parse(
+          localStorage.getItem('processed_images') || '[]'
+        );
+        existingProcessed.push(processedImageForStorage);
+
+        const stored = safeLocalStorageSet(
+          'processed_images',
+          existingProcessed
+        );
+        if (!stored) {
+          console.warn(
+            'Failed to store processed image data in localStorage, but processing was successful'
+          );
+        }
+
+        return { data: processedImage, error: null };
+      }
+
+      // Real Supabase implementation
+      const fileName = `processed-${Date.now()}.jpg`;
+      const filePath = `processed/${maidId}/${fileName}`;
+
+      // Upload processed image to Supabase Storage
+      const { data: uploadData, error: uploadError } =
+        await uploadImageToSupabase(processedImageData.file, filePath);
+
+      if (uploadError) throw uploadError;
+
+      // Save processed image metadata
+      const { data: processedImage, error: dbError } = await supabase
+        .from('processed_images')
+        .insert([
+          {
+            maid_profile_id: maidId,
+            original_image_url: processedImageData.originalUrl,
+            processed_image_url: uploadData.publicUrl,
+            processing_type: processedImageData.processingType || 'combined',
+            processing_settings: processedImageData.settings || {},
+            file_size_original: processedImageData.originalSize,
+            file_size_processed: processedImageData.file.size,
+            dimensions_original: processedImageData.originalDimensions,
+            dimensions_processed: processedImageData.processedDimensions,
+            is_primary: true,
+          },
+        ])
+        .select()
+        .single();
+
+      if (dbError) throw dbError;
+
+      // Update maid profile to mark as having processed image
+      await supabase
+        .from('maid_profiles')
+        .update({
+          primary_image_processed: true,
+          primary_image_processed_url: uploadData.publicUrl,
+          primary_image_original_url: processedImageData.originalUrl,
+        })
+        .eq('id', maidId);
+
+      return { data: processedImage, error: null };
+    } catch (error) {
+      console.error('Error saving processed image:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Get processed images for a maid
+  async getProcessedImages(maidId) {
+    try {
+      await delay(300);
+
+      if (USE_MOCK_DATA) {
+        const processedImages = JSON.parse(
+          localStorage.getItem('processed_images') || '[]'
+        );
+        const maidProcessedImages = processedImages.filter(
+          (img) => img.maid_profile_id === maidId
+        );
+        return { data: maidProcessedImages, error: null };
+      }
+
+      const { data, error } = await supabase
+        .from('processed_images')
+        .select('*')
+        .eq('maid_profile_id', maidId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error fetching processed images:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Set primary processed image
+  async setPrimaryProcessedImage(maidId, processedImageId) {
+    try {
+      await delay(300);
+
+      if (USE_MOCK_DATA) {
+        const processedImages = JSON.parse(
+          localStorage.getItem('processed_images') || '[]'
+        );
+
+        // Update primary flags
+        const updatedImages = processedImages.map((img) => ({
+          ...img,
+          is_primary:
+            img.maid_profile_id === maidId
+              ? img.id === processedImageId
+              : img.is_primary,
+        }));
+
+        safeLocalStorageSet('processed_images', updatedImages);
+        return { data: true, error: null };
+      }
+
+      // Use the database function
+      const { data, error } = await supabase.rpc(
+        'set_primary_processed_image',
+        {
+          maid_id: maidId,
+          processed_image_id: processedImageId,
+        }
+      );
+
+      if (error) throw error;
+
+      return { data, error: null };
+    } catch (error) {
+      console.error('Error setting primary processed image:', error);
+      return { data: null, error };
+    }
+  }
+}
+
+export const agencyService = new AgencyService();
+export { getPrimaryImageUrl };
+
+// Export utility functions for localStorage management
+export const clearLocalStorageData = () => {
+  try {
+    const keys = ['agency_maids', 'processed_images', 'maid_profiles'];
+    keys.forEach((key) => {
+      localStorage.removeItem(key);
+      console.log(`Cleared localStorage key: ${key}`);
+    });
+    console.log('All localStorage data cleared successfully');
+    return true;
+  } catch (error) {
+    console.error('Error clearing localStorage:', error);
+    return false;
+  }
+};
+
+export const getLocalStorageUsage = () => {
+  try {
+    const keys = ['agency_maids', 'processed_images', 'maid_profiles'];
+    const usage = {};
+    let totalSize = 0;
+
+    keys.forEach((key) => {
+      const data = localStorage.getItem(key);
+      const size = data ? new Blob([data]).size : 0;
+      const count = data ? JSON.parse(data).length : 0;
+      usage[key] = { size, count, sizeKB: Math.round(size / 1024) };
+      totalSize += size;
+    });
+
+    usage.total = {
+      size: totalSize,
+      sizeKB: Math.round(totalSize / 1024),
+      sizeMB: Math.round(totalSize / (1024 * 1024)),
+    };
+    return usage;
+  } catch (error) {
+    console.error('Error getting localStorage usage:', error);
+    return null;
+  }
+};

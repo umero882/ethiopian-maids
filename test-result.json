@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-09-20T18:20:31.448Z",
+  "success": true,
+  "count": 9,
+  "first5": [
+    {
+      "code": "BH",
+      "name": "Bahrain",
+      "is_gcc": true,
+      "is_active": true,
+      "flag": "🇧🇭"
+    },
+    {
+      "code": "KW",
+      "name": "Kuwait",
+      "is_gcc": true,
+      "is_active": true,
+      "flag": "🇰🇼"
+    },
+    {
+      "code": "OM",
+      "name": "Oman",
+      "is_gcc": true,
+      "is_active": true,
+      "flag": "🇴🇲"
+    },
+    {
+      "code": "QA",
+      "name": "Qatar",
+      "is_gcc": true,
+      "is_active": true,
+      "flag": "🇶🇦"
+    },
+    {
+      "code": "SA",
+      "name": "Saudi Arabia",
+      "is_gcc": true,
+      "is_active": true,
+      "flag": "🇸🇦"
+    }
+  ],
+  "hasGCC": true
+}

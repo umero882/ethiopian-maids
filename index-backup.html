@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- 🛡️ Security Headers -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.twilio.com;
+      media-src 'self' blob:;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      upgrade-insecure-requests;
+    "
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta
+      http-equiv="Referrer-Policy"
+      content="strict-origin-when-cross-origin"
+    />
+    <meta
+      name="description"
+      content="Ethio-Maids - Connect Ethiopian domestic workers with sponsors across the GCC region. Find your perfect match today."
+    />
+    <meta
+      name="keywords"
+      content="Ethiopian maids, domestic workers, GCC, employment, domestic help, household staff"
+    />
+    <meta name="author" content="Ethio-Maids" />
+    <meta name="theme-color" content="#4F46E5" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ethio-maids.com/" />
+    <meta
+      property="og:title"
+      content="Ethio-Maids | Connect with Ethiopian Domestic Workers"
+    />
+    <meta
+      property="og:description"
+      content="The premier platform connecting Ethiopian domestic workers with families across the GCC region."
+    />
+    <meta property="og:image" content="/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://ethio-maids.com/" />
+    <meta
+      property="twitter:title"
+      content="Ethio-Maids | Connect with Ethiopian Domestic Workers"
+    />
+    <meta
+      property="twitter:description"
+      content="The premier platform connecting Ethiopian domestic workers with families across the GCC region."
+    />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <link rel="icon" href="/images/new-ethiopian-maids-logo.svg" sizes="any" />
+    <link
+      rel="icon"
+      href="/images/new-ethiopian-maids-logo.svg"
+      type="image/svg+xml"
+    />
+    <link rel="apple-touch-icon" href="/images/new-ethiopian-maids-logo.svg" />
+    <title>Ethiopian Maids | Connect with Ethiopian Domestic Workers</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

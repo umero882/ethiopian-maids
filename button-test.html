@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Color Test</title>
+    <link rel="stylesheet" href="/src/index.css">
+    <script type="module">
+        import './src/main.jsx'
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module">
+        import React from 'react'
+        import ReactDOM from 'react-dom/client'
+        import { Button } from './src/components/ui/button.jsx'
+
+        function ButtonTest() {
+            return React.createElement('div', {
+                className: 'p-8 space-y-4'
+            }, [
+                React.createElement('h1', {
+                    key: 'title',
+                    className: 'text-2xl font-bold'
+                }, 'Button Color Test'),
+
+                React.createElement('div', {
+                    key: 'buttons',
+                    className: 'space-y-4'
+                }, [
+                    React.createElement('div', {
+                        key: 'primary',
+                        className: 'space-x-2'
+                    }, [
+                        React.createElement('span', { key: 'label1', className: 'font-medium' }, 'Primary: '),
+                        React.createElement(Button, { key: 'btn1' }, 'Primary Button'),
+                        React.createElement(Button, { key: 'btn2', variant: 'default' }, 'Default Button')
+                    ]),
+
+                    React.createElement('div', {
+                        key: 'secondary',
+                        className: 'space-x-2'
+                    }, [
+                        React.createElement('span', { key: 'label2', className: 'font-medium' }, 'Secondary: '),
+                        React.createElement(Button, { key: 'btn3', variant: 'secondary' }, 'Back'),
+                        React.createElement(Button, { key: 'btn4', variant: 'secondary' }, 'Send Verification Code')
+                    ]),
+
+                    React.createElement('div', {
+                        key: 'others',
+                        className: 'space-x-2'
+                    }, [
+                        React.createElement('span', { key: 'label3', className: 'font-medium' }, 'Others: '),
+                        React.createElement(Button, { key: 'btn5', variant: 'outline' }, 'Outline'),
+                        React.createElement(Button, { key: 'btn6', variant: 'ghost' }, 'Ghost'),
+                        React.createElement(Button, { key: 'btn7', variant: 'destructive' }, 'Destructive')
+                    ])
+                ])
+            ])
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(
+            React.createElement(ButtonTest)
+        )
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "@ethio-maids/domain-dashboard",
+  "version": "0.1.0",
+  "description": "Domain layer for agency dashboard - pure business logic",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [
+    "domain",
+    "dashboard",
+    "ddd",
+    "clean-architecture"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

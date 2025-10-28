@@ -1,0 +1,28 @@
+# Supabase Configuration
+
+[functions.whatsapp-webhook]
+verify_jwt = false  # Allow public access for Twilio webhooks (no JWT required)
+
+[functions.stripe-webhook]
+verify_jwt = false  # Allow public access for Stripe webhooks
+
+[functions.create-checkout-session]
+verify_jwt = true  # Requires authentication
+
+[functions.handle-checkout-success]
+verify_jwt = true  # Requires authentication
+
+[functions.create-portal-session]
+verify_jwt = true  # Requires authentication
+
+[functions.cancel-subscription]
+verify_jwt = true  # Requires authentication
+
+[functions.sync-subscription]
+verify_jwt = true  # Requires authentication
+
+[functions.phone-verification]
+verify_jwt = true  # Requires authentication
+
+[functions.swift-processor]
+verify_jwt = true  # Requires authentication

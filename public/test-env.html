@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Variable Test</title>
+</head>
+<body>
+    <h1>Environment Variable Test</h1>
+    <div id="result"></div>
+
+    <script type="module">
+        const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+        document.getElementById('result').innerHTML = `
+            <p><strong>VITE_STRIPE_PUBLISHABLE_KEY:</strong></p>
+            <p style="word-break: break-all;">${key || 'NOT FOUND'}</p>
+            <p><strong>Type:</strong> ${typeof key}</p>
+            <p><strong>All VITE env vars:</strong></p>
+            <pre>${JSON.stringify(import.meta.env, null, 2)}</pre>
+        `;
+    </script>
+</body>
+</html>

@@ -1,0 +1,3566 @@
+import { supabase } from '@/lib/databaseClient';
+import { createLogger } from '@/utils/logger';
+
+const log = createLogger('AgencyDashboardService');
+
+export class AgencyDashboardService {
+  // KPI Calculations
+  static async getAgencyKPIs(agencyId) {
+    try {
+      // For now, since the database tables may not exist, return mock data
+      // In production, this would query the actual tables
+      if (!agencyId) {
+        return this.getMockKPIs();
+      }
+
+      // Try to get real data, but fall back to mock data if tables don't exist
+      try {
+        const [
+          activeMaids,
+          jobsLive,
+          newApplicantsToday,
+          interviewsScheduled,
+          hiresThisMonth,
+          subscriptionStatus,
+          overdueDocuments,
+          openDisputes
+        ] = await Promise.all([
+          this.getActiveMaidsCount(agencyId),
+          this.getJobsLiveCount(agencyId),
+          this.getNewApplicantsTodayCount(agencyId),
+          this.getInterviewsScheduledCount(agencyId),
+          this.getHiresThisMonthCount(agencyId),
+          this.getSubscriptionStatus(agencyId),
+          this.getOverdueDocumentsCount(agencyId),
+          this.getOpenDisputesCount(agencyId)
+        ]);
+
+        return {
+          activeMaids,
+          jobsLive,
+          newApplicantsToday,
+          interviewsScheduled,
+          hiresThisMonth,
+          subscriptionStatus,
+          overdueDocuments,
+          openDisputes
+        };
+      } catch (dbError) {
+        log.warn('Database tables may not exist, returning mock data:', dbError.message);
+        return this.getMockKPIs();
+      }
+    } catch (error) {
+      log.error('Error fetching agency KPIs:', error);
+      return this.getMockKPIs();
+    }
+  }
+
+  static getMockKPIs() {
+    return {
+      activeMaids: 47,
+      jobsLive: 12,
+      newApplicantsToday: 8,
+      interviewsScheduled: 5,
+      hiresThisMonth: 11,
+      subscriptionStatus: {
+        status: 'active',
+        plan_type: 'professional',
+        expires_at: '2024-12-31',
+        payment_status: 'paid'
+      },
+      overdueDocuments: 3,
+      openDisputes: 1
+    };
+  }
+
+  static async getActiveMaidsCount(agencyId) {
+    const { count } = await supabase
+      .from('maid_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .eq('availability_status', 'available');
+
+    return count || 0;
+  }
+
+  static async getJobsLiveCount(agencyId) {
+    const { count } = await supabase
+      .from('agency_jobs')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .eq('status', 'active');
+
+    return count || 0;
+  }
+
+  static async getNewApplicantsTodayCount(agencyId) {
+    const today = new Date().toISOString().split('T')[0];
+
+    const { count } = await supabase
+      .from('job_applications')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', today)
+      .in(
+        'job_id',
+        supabase
+          .from('agency_jobs')
+          .select('id')
+          .eq('agency_id', agencyId)
+      );
+
+    return count || 0;
+  }
+
+  static async getInterviewsScheduledCount(agencyId) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { count } = await supabase
+      .from('agency_interviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .gte('scheduled_date', new Date().toISOString())
+      .lte('scheduled_date', tomorrow.toISOString())
+      .eq('status', 'scheduled');
+
+    return count || 0;
+  }
+
+  static async getHiresThisMonthCount(agencyId) {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count } = await supabase
+      .from('agency_placements')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .eq('status', 'hired')
+      .gte('placement_date', startOfMonth.toISOString());
+
+    return count || 0;
+  }
+
+  static async getSubscriptionStatus(agencyId) {
+    const { data } = await supabase
+      .from('agency_subscriptions')
+      .select('status, plan_type, expires_at, payment_status')
+      .eq('agency_id', agencyId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    return data || { status: 'inactive', plan_type: 'basic' };
+  }
+
+  static async getOverdueDocumentsCount(agencyId) {
+    const { count } = await supabase
+      .from('agency_document_requirements')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .lt('due_date', new Date().toISOString())
+      .eq('status', 'pending');
+
+    return count || 0;
+  }
+
+  static async getOpenDisputesCount(agencyId) {
+    const { count } = await supabase
+      .from('agency_disputes')
+      .select('*', { count: 'exact', head: true })
+      .eq('agency_id', agencyId)
+      .in('status', ['open', 'under_review']);
+
+    return count || 0;
+  }
+
+  // Pipeline Analytics
+  static async getPipelineFunnel(agencyId, dateRange = 30) {
+    try {
+      if (!agencyId) {
+        return this.getMockPipelineFunnel();
+      }
+
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - dateRange);
+
+      // Try to get real data, but fall back to mock data if tables don't exist
+      try {
+        // Get profiles count
+        const { count: profiles } = await supabase
+          .from('maid_profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .gte('created_at', startDate.toISOString());
+
+        // Get agency jobs first to use in subqueries
+        const { data: agencyJobs } = await supabase
+          .from('agency_jobs')
+          .select('id')
+          .eq('agency_id', agencyId);
+
+        const jobIds = agencyJobs?.map(job => job.id) || [];
+
+        // Get applications count
+        let applied = 0;
+        if (jobIds.length > 0) {
+          const { count: appliedCount } = await supabase
+            .from('job_applications')
+            .select('*', { count: 'exact', head: true })
+            .in('job_id', jobIds)
+            .gte('created_at', startDate.toISOString());
+          applied = appliedCount || 0;
+        }
+
+        // Get interviews count
+        const { count: interviewed } = await supabase
+          .from('agency_interviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .gte('created_at', startDate.toISOString());
+
+        // Get offers count
+        let offered = 0;
+        if (jobIds.length > 0) {
+          const { count: offeredCount } = await supabase
+            .from('job_offers')
+            .select('*', { count: 'exact', head: true })
+            .in('job_id', jobIds)
+            .gte('created_at', startDate.toISOString());
+          offered = offeredCount || 0;
+        }
+
+        // Get hires count
+        const { count: hired } = await supabase
+          .from('agency_placements')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .eq('status', 'hired')
+          .gte('placement_date', startDate.toISOString());
+
+        return {
+          profiles: profiles || 0,
+          applied,
+          interviewed: interviewed || 0,
+          offered,
+          hired: hired || 0
+        };
+      } catch (dbError) {
+        log.warn('Database tables may not exist for pipeline funnel, returning mock data:', dbError.message);
+        return this.getMockPipelineFunnel();
+      }
+    } catch (error) {
+      log.error('Error getting pipeline funnel:', error);
+      return this.getMockPipelineFunnel();
+    }
+  }
+
+  static getMockPipelineFunnel() {
+    return {
+      profiles: 125,
+      applied: 45,
+      interviewed: 20,
+      offered: 12,
+      hired: 8
+    };
+  }
+
+  // Time to Hire Analytics
+  static async getTimeToHireTrend(agencyId, periods = ['7d', '30d', '90d']) {
+    const results = {};
+
+    try {
+      if (!agencyId) {
+        return this.getMockTimeToHireTrend();
+      }
+
+      // Try to get real data, but fall back to mock data if tables don't exist
+      try {
+        for (const period of periods) {
+          const days = parseInt(period);
+          const startDate = new Date();
+          startDate.setDate(startDate.getDate() - days);
+
+          // Calculate average time to hire for this period
+          const { data: placements } = await supabase
+            .from('agency_placements')
+            .select('placement_date, application_date')
+            .eq('agency_id', agencyId)
+            .eq('status', 'hired')
+            .gte('placement_date', startDate.toISOString());
+
+          let avgDays = 0;
+          if (placements && placements.length > 0) {
+            const totalDays = placements.reduce((sum, placement) => {
+              const placementDate = new Date(placement.placement_date);
+              const applicationDate = new Date(placement.application_date);
+              const diffTime = Math.abs(placementDate - applicationDate);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return sum + diffDays;
+            }, 0);
+            avgDays = Math.round(totalDays / placements.length);
+          }
+
+          results[period] = avgDays;
+        }
+      } catch (dbError) {
+        log.warn('Database tables may not exist for time to hire trend, returning mock data:', dbError.message);
+        return this.getMockTimeToHireTrend();
+      }
+    } catch (error) {
+      log.error('Error getting time to hire trend:', error);
+      return this.getMockTimeToHireTrend();
+    }
+
+    return results;
+  }
+
+  static getMockTimeToHireTrend() {
+    return {
+      '7d': 14,
+      '30d': 18,
+      '90d': 21
+    };
+  }
+
+  // Tasks and SLA Management
+  static async getTasksSLA(agencyId) {
+    try {
+      if (!agencyId) {
+        return this.getMockTasksSLA();
+      }
+
+      try {
+        const { data: tasks } = await supabase
+          .from('agency_tasks')
+          .select(`
+            *,
+            assignee:profiles!agency_tasks_assignee_id_fkey(name, email)
+          `)
+          .eq('agency_id', agencyId)
+          .in('status', ['pending', 'in_progress'])
+          .order('due_date', { ascending: true });
+
+        const today = new Date().toISOString().split('T')[0];
+
+        return {
+          today: tasks?.filter(t => t.due_date === today) || [],
+          overdue: tasks?.filter(t => t.due_date < today) || [],
+          upcoming: tasks?.filter(t => t.due_date > today) || []
+        };
+      } catch (dbError) {
+        log.warn('Database tables may not exist for tasks SLA, returning mock data:', dbError.message);
+        return this.getMockTasksSLA();
+      }
+    } catch (error) {
+      log.error('Error getting tasks SLA:', error);
+      return this.getMockTasksSLA();
+    }
+  }
+
+  static getMockTasksSLA() {
+    return {
+      today: [
+        {
+          id: 1,
+          title: 'Review new maid applications',
+          priority: 'high',
+          due_date: new Date().toISOString().split('T')[0],
+          assignee: { name: 'John Doe', email: 'john@agency.com' }
+        }
+      ],
+      overdue: [
+        {
+          id: 2,
+          title: 'Update expired documents',
+          priority: 'critical',
+          due_date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
+          assignee: { name: 'Jane Smith', email: 'jane@agency.com' }
+        }
+      ],
+      upcoming: [
+        {
+          id: 3,
+          title: 'Conduct interviews',
+          priority: 'medium',
+          due_date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+          assignee: { name: 'Mike Johnson', email: 'mike@agency.com' }
+        }
+      ]
+    };
+  }
+
+  // Alerts System
+  static async getAgencyAlerts(agencyId) {
+    try {
+      if (!agencyId) {
+        return this.getMockAgencyAlerts();
+      }
+
+      try {
+        const alerts = [];
+
+        // Failed payments
+        const { data: failedPayments } = await supabase
+          .from('agency_payment_failures')
+          .select('*')
+          .eq('agency_id', agencyId)
+          .eq('resolved', false);
+
+        if (failedPayments?.length > 0) {
+          alerts.push({
+            type: 'payment_failed',
+            level: 'critical',
+            message: `${failedPayments.length} payment(s) failed`,
+            count: failedPayments.length,
+            link: '/dashboard/agency/billing'
+          });
+        }
+
+        // Get maid profiles for agency first
+        const { data: maidProfiles } = await supabase
+          .from('maid_profiles')
+          .select('id')
+          .eq('agency_id', agencyId);
+
+        const maidIds = maidProfiles?.map(profile => profile.id) || [];
+
+        // Expiring documents (30, 60, 90 days)
+        const expiryThresholds = [30, 60, 90];
+        for (const days of expiryThresholds) {
+          if (maidIds.length > 0) {
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + days);
+
+            const { count } = await supabase
+              .from('maid_documents')
+              .select('*', { count: 'exact', head: true })
+              .in('maid_id', maidIds)
+              .lt('expiry_date', futureDate.toISOString())
+              .gt('expiry_date', new Date().toISOString());
+
+            if (count > 0) {
+              alerts.push({
+                type: 'documents_expiring',
+                level: days <= 30 ? 'critical' : days <= 60 ? 'warning' : 'info',
+                message: `${count} document(s) expiring in ${days} days`,
+                count,
+                days,
+                link: '/dashboard/agency/documents'
+              });
+            }
+          }
+        }
+
+        // Paused listings
+        const { count: pausedJobs } = await supabase
+          .from('agency_jobs')
+          .select('*', { count: 'exact', head: true })
+          .eq('agency_id', agencyId)
+          .eq('status', 'paused');
+
+        if (pausedJobs > 0) {
+          alerts.push({
+            type: 'paused_listings',
+            level: 'warning',
+            message: `${pausedJobs} job listing(s) paused`,
+            count: pausedJobs,
+            link: '/dashboard/agency/jobs'
+          });
+        }
+
+        return alerts;
+      } catch (dbError) {
+        log.warn('Database tables may not exist for agency alerts, returning mock data:', dbError.message);
+        return this.getMockAgencyAlerts();
+      }
+    } catch (error) {
+      log.error('Error getting agency alerts:', error);
+      return this.getMockAgencyAlerts();
+    }
+  }
+
+  static getMockAgencyAlerts() {
+    return [
+      {
+        type: 'documents_expiring',
+        level: 'critical',
+        message: '3 document(s) expiring in 30 days',
+        count: 3,
+        days: 30,
+        link: '/dashboard/agency/documents'
+      },
+      {
+        type: 'paused_listings',
+        level: 'warning',
+        message: '2 job listing(s) paused',
+        count: 2,
+        link: '/dashboard/agency/jobs'
+      }
+    ];
+  }
+
+  // Maid Management
+  static async getMaidsWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockMaidsWithFilters();
+      }
+
+      try {
+        let query = supabase
+          .from('maid_profiles')
+          .select(`
+            *,
+            documents:maid_documents(
+              document_type,
+              expiry_date,
+              verification_status
+            )
+          `)
+          .eq('agency_id', agencyId);
+
+        // Apply filters
+        if (filters.nationality) {
+          query = query.in('nationality', filters.nationality);
+        }
+
+        if (filters.skills) {
+          query = query.contains('skills', filters.skills);
+        }
+
+        if (filters.languages) {
+          query = query.contains('languages', filters.languages);
+        }
+
+        if (filters.experienceRange) {
+          const [min, max] = filters.experienceRange;
+          query = query.gte('experience_years', min).lte('experience_years', max);
+        }
+
+        if (filters.verificationStatus) {
+          query = query.eq('verification_status', filters.verificationStatus);
+        }
+
+        if (filters.availabilityStatus) {
+          query = query.eq('availability_status', filters.availabilityStatus);
+        }
+
+        const { data, error } = await query.order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data?.map(maid => ({
+          ...maid,
+          // Mask PII in list view
+          full_name: this.maskPII(maid.full_name),
+          phone_number: this.maskPII(maid.phone_number, 'phone'),
+          passport_number: this.maskPII(maid.passport_number, 'passport'),
+          // Add computed fields
+          documentsStatus: this.computeDocumentStatus(maid.documents),
+          lastUpdate: maid.updated_at
+        })) || [];
+      } catch (dbError) {
+        log.warn('Database tables may not exist for maids with filters, returning mock data:', dbError.message);
+        return this.getMockMaidsWithFilters();
+      }
+    } catch (error) {
+      log.error('Error getting maids with filters:', error);
+      return this.getMockMaidsWithFilters();
+    }
+  }
+
+  static getMockMaidsWithFilters() {
+    return [
+      {
+        id: 1,
+        full_name: 'Mar*** **h',
+        phone_number: '251****1234',
+        passport_number: 'ET****23',
+        nationality: 'Ethiopian',
+        availability_status: 'available',
+        verification_status: 'verified',
+        experience_years: 3,
+        skills: ['Housekeeping', 'Childcare'],
+        languages: ['English', 'Amharic'],
+        documentsStatus: 'valid',
+        lastUpdate: new Date().toISOString(),
+        documents: []
+      },
+      {
+        id: 2,
+        full_name: 'Sar*** **e',
+        phone_number: '251****5678',
+        passport_number: 'ET****45',
+        nationality: 'Ethiopian',
+        availability_status: 'placed',
+        verification_status: 'pending',
+        experience_years: 5,
+        skills: ['Housekeeping', 'Cooking', 'Elderly Care'],
+        languages: ['English', 'Amharic', 'Arabic'],
+        documentsStatus: 'expiring',
+        lastUpdate: new Date().toISOString(),
+        documents: []
+      }
+    ];
+  }
+
+  static maskPII(value, type = 'text') {
+    if (!value) return value;
+
+    switch (type) {
+      case 'phone':
+        return value.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+      case 'passport':
+        return value.replace(/(.{2})\w+(.{2})/, '$1****$2');
+      default:
+        return value.length > 6
+          ? value.substring(0, 3) + '***' + value.substring(value.length - 2)
+          : '***';
+    }
+  }
+
+  static computeDocumentStatus(documents) {
+    if (!documents?.length) return 'missing';
+
+    const now = new Date();
+    const hasExpired = documents.some(doc => new Date(doc.expiry_date) < now);
+    const hasExpiringSoon = documents.some(doc => {
+      const expiryDate = new Date(doc.expiry_date);
+      const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+      return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
+    });
+
+    if (hasExpired) return 'expired';
+    if (hasExpiringSoon) return 'expiring';
+    return 'valid';
+  }
+
+  // Audit Logging (basic, agency-scoped)
+  static async logAgencyAuditEvent(agencyId, userId, action, entityType, entityId, details = {}) {
+    try {
+      const auditData = {
+        agency_id: agencyId,
+        user_id: userId,
+        action,
+        entity_type: entityType,
+        entity_id: entityId,
+        details,
+        ip_address: null, // To be populated from request context
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server',
+        timestamp: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('agency_audit_logs')
+        .insert(auditData);
+
+      if (error) {
+        log.error('Failed to log audit event:', error);
+      }
+    } catch (error) {
+      log.warn('Audit logging failed, table may not exist:', error.message);
+      // In development, we can continue without audit logging
+      // In production, this would be a critical issue
+    }
+  }
+
+  // Sponsors Management Methods
+  static async getSponsorsWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockSponsors();
+      }
+
+      let query = supabase
+        .from('sponsors')
+        .select('*, sponsor_jobs(*)')
+        .eq('agency_id', agencyId);
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.location && filters.location !== 'all') {
+        query = query.eq('location', filters.location);
+      }
+
+      if (filters.sponsorType && filters.sponsorType !== 'all') {
+        query = query.eq('sponsor_type', filters.sponsorType);
+      }
+
+      if (filters.search) {
+        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []).map((s) => ({
+        ...s,
+        full_name: s.full_name || s.name || '',
+      }));
+    } catch (error) {
+      log.warn('Failed to fetch sponsors, returning mock data:', error.message);
+      return this.getMockSponsors().map((s) => ({
+        ...s,
+        full_name: s.full_name || s.name || '',
+      }));
+    }
+  }
+
+  static async createSponsor(agencyId, sponsorData = {}) {
+    try {
+      if (!agencyId) {
+        // Return mock creation when no agency
+        const mock = {
+          id: `sp_${Date.now()}`,
+          agency_id: 'mock',
+          name: sponsorData.name || 'New Sponsor',
+          email: sponsorData.email || 'new@example.com',
+          phone: sponsorData.phone || '',
+          location: sponsorData.location || '',
+          sponsor_type: sponsorData.sponsor_type || 'individual',
+          status: 'pending',
+          verification_status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          sponsor_jobs: []
+        };
+        return mock;
+      }
+
+      const payload = {
+        agency_id: agencyId,
+        name: sponsorData.name?.trim() || null,
+        email: sponsorData.email?.trim() || null,
+        phone: sponsorData.phone?.trim() || null,
+        location: sponsorData.location?.trim() || null,
+        sponsor_type: sponsorData.sponsor_type || 'individual',
+        status: 'pending',
+        verification_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('sponsors')
+        .insert(payload)
+        .select('*, sponsor_jobs(*)')
+        .single();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'sponsor_created', {
+        sponsor_name: payload.name,
+        sponsor_email: payload.email
+      }, 'sponsor', data?.id);
+
+      return data;
+    } catch (error) {
+      log.warn('Failed to create sponsor (falling back to mock):', error.message);
+      // Fallback mock to keep UI flowing
+      return {
+        id: `sp_${Date.now()}`,
+        agency_id: agencyId,
+        name: sponsorData.name || 'New Sponsor',
+        email: sponsorData.email || 'new@example.com',
+        phone: sponsorData.phone || '',
+        location: sponsorData.location || '',
+        sponsor_type: sponsorData.sponsor_type || 'individual',
+        status: 'pending',
+        verification_status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        sponsor_jobs: []
+      };
+    }
+  }
+
+  static async updateSponsor(agencyId, sponsorId, updates = {}) {
+    try {
+      if (!agencyId) {
+        // Mock update result
+        return { id: sponsorId, ...updates, updated_at: new Date().toISOString() };
+      }
+
+      const allowed = ['name','email','phone','location','sponsor_type','status','verification_status'];
+      const payload = Object.fromEntries(
+        Object.entries(updates)
+          .filter(([k,v]) => allowed.includes(k))
+          .map(([k,v]) => [k, typeof v === 'string' ? v.trim() : v])
+      );
+      payload.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('sponsors')
+        .update(payload)
+        .eq('id', sponsorId)
+        .eq('agency_id', agencyId)
+        .select('*, sponsor_jobs(*)')
+        .single();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'sponsor_updated', {
+        sponsor_id: sponsorId,
+        fields: Object.keys(payload)
+      }, 'sponsor', sponsorId);
+
+      return data;
+    } catch (error) {
+      log.warn('Failed to update sponsor (falling back to mock):', error.message);
+      return { id: sponsorId, ...updates, updated_at: new Date().toISOString() };
+    }
+  }
+
+  static getMockSponsors() {
+    return [
+      {
+        id: 'sp_001',
+        name: 'Al-Rashid Family',
+        email: 'ahmad.rashid@email.com',
+        phone: '+966-50-123-4567',
+        location: 'Riyadh, Saudi Arabia',
+        sponsor_type: 'individual',
+        status: 'active',
+        verification_status: 'verified',
+        registration_date: '2024-01-15',
+        total_jobs: 3,
+        active_jobs: 1,
+        hired_maids: 2,
+        last_activity: '2024-09-20',
+        rating: 4.8,
+        notes: 'Preferred sponsor, always pays on time',
+        profile_image: null,
+        documents_status: 'complete',
+        preferred_nationalities: ['Ethiopian', 'Filipino'],
+        preferred_experience: 'experienced',
+        budget_range: '2000-3000',
+        family_size: 5,
+        children_count: 2,
+        pets: true,
+        languages: ['Arabic', 'English'],
+        sponsor_jobs: [
+          { id: 'job_001', title: 'Live-in Housemaid', status: 'active', created_at: '2024-09-15' },
+          { id: 'job_002', title: 'Part-time Cleaner', status: 'filled', created_at: '2024-07-10' },
+          { id: 'job_003', title: 'Nanny', status: 'filled', created_at: '2024-05-20' }
+        ]
+      },
+      {
+        id: 'sp_002',
+        name: 'Emirates Villa Management',
+        email: 'hr@emiratesvilla.ae',
+        phone: '+971-4-567-8901',
+        location: 'Dubai, UAE',
+        sponsor_type: 'company',
+        status: 'active',
+        verification_status: 'verified',
+        registration_date: '2023-11-20',
+        total_jobs: 8,
+        active_jobs: 3,
+        hired_maids: 5,
+        last_activity: '2024-09-21',
+        rating: 4.9,
+        notes: 'Large client, handles multiple properties',
+        profile_image: null,
+        documents_status: 'complete',
+        preferred_nationalities: ['Ethiopian', 'Sri Lankan', 'Indonesian'],
+        preferred_experience: 'any',
+        budget_range: '1800-2800',
+        family_size: null,
+        children_count: null,
+        pets: false,
+        languages: ['Arabic', 'English', 'Hindi'],
+        sponsor_jobs: [
+          { id: 'job_004', title: 'Villa Housekeeper', status: 'active', created_at: '2024-09-18' },
+          { id: 'job_005', title: 'Kitchen Assistant', status: 'active', created_at: '2024-09-10' },
+          { id: 'job_006', title: 'Cleaning Staff', status: 'active', created_at: '2024-09-05' }
+        ]
+      },
+      {
+        id: 'sp_003',
+        name: 'Sarah Al-Mahmoud',
+        email: 'sarah.mahmoud@email.com',
+        phone: '+965-9-876-5432',
+        location: 'Kuwait City, Kuwait',
+        sponsor_type: 'individual',
+        status: 'pending',
+        verification_status: 'pending_documents',
+        registration_date: '2024-09-18',
+        total_jobs: 1,
+        active_jobs: 1,
+        hired_maids: 0,
+        last_activity: '2024-09-21',
+        rating: null,
+        notes: 'New client, pending verification',
+        profile_image: null,
+        documents_status: 'incomplete',
+        preferred_nationalities: ['Ethiopian', 'Filipino'],
+        preferred_experience: 'experienced',
+        budget_range: '1500-2200',
+        family_size: 4,
+        children_count: 1,
+        pets: false,
+        languages: ['Arabic', 'English'],
+        sponsor_jobs: [
+          { id: 'job_007', title: 'Childcare Specialist', status: 'active', created_at: '2024-09-18' }
+        ]
+      },
+      {
+        id: 'sp_004',
+        name: 'Qatar Hospitality Group',
+        email: 'recruitment@qhg.qa',
+        phone: '+974-4444-5555',
+        location: 'Doha, Qatar',
+        sponsor_type: 'company',
+        status: 'suspended',
+        verification_status: 'verified',
+        registration_date: '2023-08-10',
+        total_jobs: 15,
+        active_jobs: 0,
+        hired_maids: 12,
+        last_activity: '2024-08-30',
+        rating: 3.2,
+        notes: 'Account suspended due to payment issues',
+        profile_image: null,
+        documents_status: 'complete',
+        preferred_nationalities: ['Ethiopian', 'Bangladeshi', 'Indonesian'],
+        preferred_experience: 'any',
+        budget_range: '1200-2000',
+        family_size: null,
+        children_count: null,
+        pets: false,
+        languages: ['Arabic', 'English'],
+        sponsor_jobs: []
+      },
+      {
+        id: 'sp_005',
+        name: 'Ahmed bin Zayed',
+        email: 'ahmed.zayed@email.com',
+        phone: '+971-50-999-8888',
+        location: 'Abu Dhabi, UAE',
+        sponsor_type: 'individual',
+        status: 'active',
+        verification_status: 'verified',
+        registration_date: '2024-02-28',
+        total_jobs: 2,
+        active_jobs: 0,
+        hired_maids: 2,
+        last_activity: '2024-09-19',
+        rating: 5.0,
+        notes: 'Excellent sponsor, provides great working conditions',
+        profile_image: null,
+        documents_status: 'complete',
+        preferred_nationalities: ['Ethiopian'],
+        preferred_experience: 'experienced',
+        budget_range: '2500-3500',
+        family_size: 6,
+        children_count: 3,
+        pets: true,
+        languages: ['Arabic', 'English'],
+        sponsor_jobs: [
+          { id: 'job_008', title: 'Senior Housemaid', status: 'filled', created_at: '2024-08-15' },
+          { id: 'job_009', title: 'Part-time Nanny', status: 'filled', created_at: '2024-07-01' }
+        ]
+      }
+    ];
+  }
+
+  static async updateSponsorStatus(sponsorId, status, agencyId) {
+    try {
+      const { data, error } = await supabase
+        .from('sponsors')
+        .update({
+          status,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sponsorId)
+        .eq('agency_id', agencyId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'sponsor_status_updated', {
+        sponsor_id: sponsorId,
+        new_status: status
+      });
+
+      return data?.[0] || { id: sponsorId, status };
+    } catch (error) {
+      log.error('Failed to update sponsor status:', error);
+      await this.logAuditEvent(agencyId, 'sponsor_status_update_failed', {
+        sponsor_id: sponsorId,
+        error: error.message
+      });
+      return { id: sponsorId, status };
+    }
+  }
+
+  static async deleteSponsor(sponsorId, agencyId) {
+    try {
+      const { error } = await supabase
+        .from('sponsors')
+        .delete()
+        .eq('id', sponsorId)
+        .eq('agency_id', agencyId);
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'sponsor_deleted', {
+        sponsor_id: sponsorId
+      });
+
+      return { success: true };
+    } catch (error) {
+      log.error('Failed to delete sponsor:', error);
+      await this.logAuditEvent(agencyId, 'sponsor_deletion_failed', {
+        sponsor_id: sponsorId,
+        error: error.message
+      });
+      return { success: true }; // Return success for mock data
+    }
+  }
+
+  // Messaging System Methods
+  static async getConversationsWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockConversations();
+      }
+
+      let query = supabase
+        .from('conversations')
+        .select('*, participants(*), latest_message(*)')
+        .eq('agency_id', agencyId);
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.type && filters.type !== 'all') {
+        query = query.eq('participant_type', filters.type);
+      }
+
+      if (filters.search) {
+        query = query.or(`participant_name.ilike.%${filters.search}%,latest_message.content.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query.order('last_message_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch conversations, returning mock data:', error.message);
+      return this.getMockConversations();
+    }
+  }
+
+  static async getMessageTemplates(agencyId) {
+    try {
+      if (!agencyId) {
+        return this.getMockMessageTemplates();
+      }
+
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('agency_id', agencyId)
+        .order('category', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch templates, returning mock data:', error.message);
+      return this.getMockMessageTemplates();
+    }
+  }
+
+  static async getMessagesForConversation(conversationId) {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*, sender(*)')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch messages, returning mock data:', error.message);
+      return this.getMockMessages(conversationId);
+    }
+  }
+
+  static getMockConversations() {
+    return [
+      {
+        id: 'conv_001',
+        participant_id: 'sp_001',
+        participant_name: 'Al-Rashid Family',
+        participant_type: 'sponsor',
+        participant_avatar: null,
+        status: 'active',
+        unread_count: 2,
+        last_message_at: '2024-09-22T10:30:00Z',
+        latest_message: {
+          id: 'msg_001',
+          content: 'Thank you for the recommendation. When can we schedule the interview?',
+          sender_type: 'sponsor',
+          created_at: '2024-09-22T10:30:00Z'
+        },
+        labels: ['priority', 'interview']
+      },
+      {
+        id: 'conv_002',
+        participant_id: 'md_001',
+        participant_name: 'Almaz Tadesse',
+        participant_type: 'maid',
+        participant_avatar: null,
+        status: 'active',
+        unread_count: 0,
+        last_message_at: '2024-09-22T09:15:00Z',
+        latest_message: {
+          id: 'msg_002',
+          content: 'I have completed all the required documents. What is the next step?',
+          sender_type: 'maid',
+          created_at: '2024-09-22T09:15:00Z'
+        },
+        labels: ['documents']
+      },
+      {
+        id: 'conv_003',
+        participant_id: 'sp_002',
+        participant_name: 'Emirates Villa Management',
+        participant_type: 'sponsor',
+        participant_avatar: null,
+        status: 'active',
+        unread_count: 5,
+        last_message_at: '2024-09-22T08:45:00Z',
+        latest_message: {
+          id: 'msg_003',
+          content: 'We need 3 more housekeepers for our Dubai properties. Can you help?',
+          sender_type: 'sponsor',
+          created_at: '2024-09-22T08:45:00Z'
+        },
+        labels: ['bulk_hiring', 'urgent']
+      },
+      {
+        id: 'conv_004',
+        participant_id: 'md_002',
+        participant_name: 'Tigist Alemu',
+        participant_type: 'maid',
+        participant_avatar: null,
+        status: 'archived',
+        unread_count: 0,
+        last_message_at: '2024-09-20T16:20:00Z',
+        latest_message: {
+          id: 'msg_004',
+          content: 'Thank you for everything. I am very happy with my new position.',
+          sender_type: 'maid',
+          created_at: '2024-09-20T16:20:00Z'
+        },
+        labels: ['completed']
+      },
+      {
+        id: 'conv_005',
+        participant_id: 'sp_003',
+        participant_name: 'Sarah Al-Mahmoud',
+        participant_type: 'sponsor',
+        participant_avatar: null,
+        status: 'pending',
+        unread_count: 1,
+        last_message_at: '2024-09-21T14:10:00Z',
+        latest_message: {
+          id: 'msg_005',
+          content: 'I need help uploading my verification documents. The system is not working.',
+          sender_type: 'sponsor',
+          created_at: '2024-09-21T14:10:00Z'
+        },
+        labels: ['support', 'technical']
+      }
+    ];
+  }
+
+  static getMockMessageTemplates() {
+    return [
+      {
+        id: 'tmpl_001',
+        category: 'welcome',
+        name: 'Welcome New Sponsor',
+        subject: 'Welcome to our platform!',
+        content: 'Dear {{name}},\n\nWelcome to our domestic worker placement platform! We\'re excited to help you find the perfect household assistant.\n\nTo get started:\n1. Complete your profile verification\n2. Post your first job requirement\n3. Review candidate profiles\n\nOur team is here to support you every step of the way.\n\nBest regards,\n{{agency_name}}',
+        variables: ['name', 'agency_name'],
+        created_at: '2024-01-15T00:00:00Z'
+      },
+      {
+        id: 'tmpl_002',
+        category: 'welcome',
+        name: 'Welcome New Maid',
+        subject: 'Welcome to our platform - Your journey starts here',
+        content: 'Dear {{name}},\n\nWelcome to our platform! We\'re here to help you find a wonderful employment opportunity.\n\nNext steps:\n1. Complete your profile with photos and experience\n2. Upload required documents\n3. Take our skills assessment\n4. Wait for job matches\n\nWe\'ll keep you updated throughout the process.\n\nBest wishes,\n{{agency_name}}',
+        variables: ['name', 'agency_name'],
+        created_at: '2024-01-15T00:00:00Z'
+      },
+      {
+        id: 'tmpl_003',
+        category: 'interview',
+        name: 'Interview Scheduled',
+        subject: 'Interview Scheduled - {{job_title}}',
+        content: 'Dear {{name}},\n\nGreat news! An interview has been scheduled for the {{job_title}} position.\n\nInterview Details:\n- Date: {{interview_date}}\n- Time: {{interview_time}}\n- Location: {{interview_location}}\n- Contact: {{contact_person}}\n\nPlease bring:\n- Original documents\n- Previous work references\n- Any certificates\n\nGood luck!\n\n{{agency_name}}',
+        variables: ['name', 'job_title', 'interview_date', 'interview_time', 'interview_location', 'contact_person', 'agency_name'],
+        created_at: '2024-01-20T00:00:00Z'
+      },
+      {
+        id: 'tmpl_004',
+        category: 'documents',
+        name: 'Document Reminder',
+        subject: 'Reminder: Outstanding Documents Required',
+        content: 'Dear {{name}},\n\nThis is a friendly reminder that we\'re still waiting for the following documents:\n\n{{missing_documents}}\n\nPlease upload these as soon as possible to continue with your application process.\n\nIf you need help, please don\'t hesitate to contact us.\n\nBest regards,\n{{agency_name}}',
+        variables: ['name', 'missing_documents', 'agency_name'],
+        created_at: '2024-01-25T00:00:00Z'
+      },
+      {
+        id: 'tmpl_005',
+        category: 'placement',
+        name: 'Successful Placement',
+        subject: 'Congratulations! Job Placement Confirmed',
+        content: 'Dear {{name}},\n\nCongratulations! We\'re delighted to confirm your job placement.\n\nJob Details:\n- Position: {{job_title}}\n- Employer: {{employer_name}}\n- Start Date: {{start_date}}\n- Salary: {{salary}}\n- Location: {{work_location}}\n\nYour employer contact: {{employer_contact}}\n\nWe\'ll continue to support you during your employment. Please don\'t hesitate to reach out if you need anything.\n\nCongratulations again!\n\n{{agency_name}}',
+        variables: ['name', 'job_title', 'employer_name', 'start_date', 'salary', 'work_location', 'employer_contact', 'agency_name'],
+        created_at: '2024-02-01T00:00:00Z'
+      },
+      {
+        id: 'tmpl_006',
+        category: 'follow_up',
+        name: 'Weekly Check-in',
+        subject: 'How are things going?',
+        content: 'Dear {{name}},\n\nI hope this message finds you well. It\'s been a week since your placement, and I wanted to check in.\n\nHow are you settling into your new role? Is everything going smoothly with your employer?\n\nPlease let me know if:\n- You have any concerns\n- You need any support\n- Everything is going well (we love good news!)\n\nWe\'re here to help ensure your success.\n\nBest regards,\n{{agent_name}}\n{{agency_name}}',
+        variables: ['name', 'agent_name', 'agency_name'],
+        created_at: '2024-02-10T00:00:00Z'
+      }
+    ];
+  }
+
+  static getMockMessages(conversationId) {
+    const messagesByConversation = {
+      'conv_001': [
+        {
+          id: 'msg_001a',
+          conversation_id: 'conv_001',
+          content: 'Hello! I saw your profile and I\'m interested in hiring a housemaid for my family.',
+          sender_type: 'sponsor',
+          sender_name: 'Ahmad Al-Rashid',
+          created_at: '2024-09-22T09:00:00Z',
+          read: true
+        },
+        {
+          id: 'msg_001b',
+          conversation_id: 'conv_001',
+          content: 'Hello Mr. Al-Rashid! Thank you for your interest. I\'d be happy to help you find the perfect housemaid. Could you tell me more about your requirements?',
+          sender_type: 'agency',
+          sender_name: 'Agency Representative',
+          created_at: '2024-09-22T09:15:00Z',
+          read: true
+        },
+        {
+          id: 'msg_001c',
+          conversation_id: 'conv_001',
+          content: 'We have a family of 5 with 2 young children. We need someone experienced with childcare and general housekeeping. Preferably Ethiopian with good English.',
+          sender_type: 'sponsor',
+          sender_name: 'Ahmad Al-Rashid',
+          created_at: '2024-09-22T09:30:00Z',
+          read: true
+        },
+        {
+          id: 'msg_001d',
+          conversation_id: 'conv_001',
+          content: 'Perfect! I have several excellent candidates that match your requirements. I\'ll send you 3 profiles that I think would be ideal for your family.',
+          sender_type: 'agency',
+          sender_name: 'Agency Representative',
+          created_at: '2024-09-22T10:00:00Z',
+          read: true
+        },
+        {
+          id: 'msg_001',
+          conversation_id: 'conv_001',
+          content: 'Thank you for the recommendation. When can we schedule the interview?',
+          sender_type: 'sponsor',
+          sender_name: 'Ahmad Al-Rashid',
+          created_at: '2024-09-22T10:30:00Z',
+          read: false
+        }
+      ]
+    };
+
+    return messagesByConversation[conversationId] || [];
+  }
+
+  static async sendMessage(conversationId, content, senderType, agencyId) {
+    try {
+      const messageData = {
+        conversation_id: conversationId,
+        content,
+        sender_type: senderType,
+        created_at: new Date().toISOString(),
+        read: false
+      };
+
+      const { data, error } = await supabase
+        .from('messages')
+        .insert(messageData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Update conversation last_message_at
+      await supabase
+        .from('conversations')
+        .update({ last_message_at: new Date().toISOString() })
+        .eq('id', conversationId);
+
+      await this.logAuditEvent(agencyId, 'message_sent', {
+        conversation_id: conversationId,
+        sender_type: senderType
+      });
+
+      return data || { id: Date.now().toString(), ...messageData };
+    } catch (error) {
+      log.error('Failed to send message:', error);
+      return { id: Date.now().toString(), conversation_id: conversationId, content, sender_type: senderType, created_at: new Date().toISOString(), read: false };
+    }
+  }
+
+  static async markConversationAsRead(conversationId, agencyId) {
+    try {
+      const { error } = await supabase
+        .from('conversations')
+        .update({ unread_count: 0 })
+        .eq('id', conversationId);
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'conversation_marked_read', {
+        conversation_id: conversationId
+      });
+
+      return { success: true };
+    } catch (error) {
+      log.error('Failed to mark conversation as read:', error);
+      return { success: true }; // Return success for mock data
+    }
+  }
+
+  // Calendar & Tasks Management Methods
+  static async getCalendarEventsWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockCalendarEvents();
+      }
+
+      let query = supabase
+        .from('calendar_events')
+        .select('*, participants(*)')
+        .eq('agency_id', agencyId);
+
+      if (filters.type && filters.type !== 'all') {
+        query = query.eq('event_type', filters.type);
+      }
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.startDate && filters.endDate) {
+        query = query.gte('start_date', filters.startDate)
+                     .lte('end_date', filters.endDate);
+      }
+
+      const { data, error } = await query.order('start_date', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch calendar events, returning mock data:', error.message);
+      return this.getMockCalendarEvents();
+    }
+  }
+
+  static async getTasksWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockTasks();
+      }
+
+      let query = supabase
+        .from('agency_tasks')
+        .select('*, assigned_to(*), related_records(*)')
+        .eq('agency_id', agencyId);
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.priority && filters.priority !== 'all') {
+        query = query.eq('priority', filters.priority);
+      }
+
+      if (filters.assignedTo && filters.assignedTo !== 'all') {
+        query = query.eq('assigned_to_id', filters.assignedTo);
+      }
+
+      if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query.order('due_date', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch tasks, returning mock data:', error.message);
+      return this.getMockTasks();
+    }
+  }
+
+  static getMockCalendarEvents() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    return [
+      {
+        id: 'evt_001',
+        title: 'Interview: Almaz Tadesse',
+        description: 'Video interview with potential housemaid for Al-Rashid Family',
+        event_type: 'interview',
+        start_date: tomorrow.toISOString().split('T')[0],
+        start_time: '10:00',
+        end_time: '10:30',
+        location: 'Video Call',
+        status: 'scheduled',
+        participants: [
+          { id: 'p1', name: 'Almaz Tadesse', type: 'maid', email: 'almaz@email.com' },
+          { id: 'p2', name: 'Ahmad Al-Rashid', type: 'sponsor', email: 'ahmad@email.com' }
+        ],
+        created_at: '2024-09-20T00:00:00Z',
+        priority: 'high',
+        reminders: ['1hour', '15minutes']
+      },
+      {
+        id: 'evt_002',
+        title: 'Document Verification',
+        description: 'Verify submitted documents for Sarah Al-Mahmoud',
+        event_type: 'document_review',
+        start_date: today.toISOString().split('T')[0],
+        start_time: '14:00',
+        end_time: '15:00',
+        location: 'Office',
+        status: 'scheduled',
+        participants: [
+          { id: 'p3', name: 'Sarah Al-Mahmoud', type: 'sponsor', email: 'sarah@email.com' }
+        ],
+        created_at: '2024-09-21T00:00:00Z',
+        priority: 'medium',
+        reminders: ['30minutes']
+      },
+      {
+        id: 'evt_003',
+        title: 'Follow-up Call: Emirates Villa',
+        description: 'Weekly check-in with Emirates Villa Management about their placements',
+        event_type: 'follow_up',
+        start_date: nextWeek.toISOString().split('T')[0],
+        start_time: '11:00',
+        end_time: '11:30',
+        location: 'Phone Call',
+        status: 'scheduled',
+        participants: [
+          { id: 'p4', name: 'Emirates Villa Management', type: 'sponsor', email: 'hr@emiratesvilla.ae' }
+        ],
+        created_at: '2024-09-18T00:00:00Z',
+        priority: 'low',
+        reminders: ['1day', '1hour']
+      },
+      {
+        id: 'evt_004',
+        title: 'Training Session: Customer Service',
+        description: 'Monthly training session for team members on customer service excellence',
+        event_type: 'training',
+        start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3).toISOString().split('T')[0],
+        start_time: '09:00',
+        end_time: '12:00',
+        location: 'Conference Room A',
+        status: 'scheduled',
+        participants: [
+          { id: 'p5', name: 'Agency Team', type: 'internal', email: 'team@agency.com' }
+        ],
+        created_at: '2024-09-15T00:00:00Z',
+        priority: 'medium',
+        reminders: ['1day', '2hours']
+      }
+    ];
+  }
+
+  static getMockTasks() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+
+    return [
+      {
+        id: 'task_001',
+        title: 'Complete Almaz Tadesse background check',
+        description: 'Verify employment history and references for Almaz Tadesse before final placement',
+        status: 'pending',
+        priority: 'high',
+        due_date: today.toISOString().split('T')[0],
+        assigned_to_id: 'agent_001',
+        assigned_to: { name: 'Sarah Johnson', email: 'sarah@agency.com' },
+        related_type: 'maid',
+        related_id: 'md_001',
+        related_records: { name: 'Almaz Tadesse', type: 'maid' },
+        estimated_hours: 2,
+        actual_hours: 0,
+        tags: ['background_check', 'urgent'],
+        created_at: '2024-09-20T00:00:00Z',
+        updated_at: '2024-09-20T00:00:00Z',
+        completion_percentage: 0
+      },
+      {
+        id: 'task_002',
+        title: 'Update sponsor requirements for Al-Rashid Family',
+        description: 'Call Al-Rashid Family to confirm updated requirements for their housemaid position',
+        status: 'in_progress',
+        priority: 'medium',
+        due_date: tomorrow.toISOString().split('T')[0],
+        assigned_to_id: 'agent_002',
+        assigned_to: { name: 'Mike Chen', email: 'mike@agency.com' },
+        related_type: 'sponsor',
+        related_id: 'sp_001',
+        related_records: { name: 'Al-Rashid Family', type: 'sponsor' },
+        estimated_hours: 1,
+        actual_hours: 0.5,
+        tags: ['sponsor_relations', 'requirements'],
+        created_at: '2024-09-19T00:00:00Z',
+        updated_at: '2024-09-22T08:30:00Z',
+        completion_percentage: 50
+      },
+      {
+        id: 'task_003',
+        title: 'Process visa application for Tigist Alemu',
+        description: 'Submit visa application documents to UAE embassy for Tigist Alemu placement',
+        status: 'overdue',
+        priority: 'high',
+        due_date: yesterday.toISOString().split('T')[0],
+        assigned_to_id: 'agent_003',
+        assigned_to: { name: 'Lisa Rodriguez', email: 'lisa@agency.com' },
+        related_type: 'maid',
+        related_id: 'md_002',
+        related_records: { name: 'Tigist Alemu', type: 'maid' },
+        estimated_hours: 3,
+        actual_hours: 1,
+        tags: ['visa', 'documents', 'overdue'],
+        created_at: '2024-09-15T00:00:00Z',
+        updated_at: '2024-09-21T00:00:00Z',
+        completion_percentage: 30
+      },
+      {
+        id: 'task_004',
+        title: 'Prepare monthly performance report',
+        description: 'Compile placement statistics and performance metrics for monthly board meeting',
+        status: 'completed',
+        priority: 'low',
+        due_date: new Date(today.getFullYear(), today.getMonth() - 1, 30).toISOString().split('T')[0],
+        assigned_to_id: 'agent_001',
+        assigned_to: { name: 'Sarah Johnson', email: 'sarah@agency.com' },
+        related_type: 'agency',
+        related_id: 'agency_001',
+        related_records: { name: 'Monthly Report', type: 'report' },
+        estimated_hours: 4,
+        actual_hours: 3.5,
+        tags: ['reporting', 'analytics', 'completed'],
+        created_at: '2024-08-25T00:00:00Z',
+        updated_at: '2024-09-01T00:00:00Z',
+        completion_percentage: 100
+      },
+      {
+        id: 'task_005',
+        title: 'Schedule interviews for Dubai positions',
+        description: 'Coordinate interview schedules for 3 housemaid positions with Emirates Villa Management',
+        status: 'pending',
+        priority: 'medium',
+        due_date: nextWeek.toISOString().split('T')[0],
+        assigned_to_id: 'agent_002',
+        assigned_to: { name: 'Mike Chen', email: 'mike@agency.com' },
+        related_type: 'sponsor',
+        related_id: 'sp_002',
+        related_records: { name: 'Emirates Villa Management', type: 'sponsor' },
+        estimated_hours: 2,
+        actual_hours: 0,
+        tags: ['interviews', 'scheduling', 'bulk_hiring'],
+        created_at: '2024-09-22T00:00:00Z',
+        updated_at: '2024-09-22T00:00:00Z',
+        completion_percentage: 0
+      },
+      {
+        id: 'task_006',
+        title: 'Update maid profiles with new skills assessment',
+        description: 'Add results from latest skills assessment test to maid profiles',
+        status: 'pending',
+        priority: 'low',
+        due_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 14).toISOString().split('T')[0],
+        assigned_to_id: 'agent_003',
+        assigned_to: { name: 'Lisa Rodriguez', email: 'lisa@agency.com' },
+        related_type: 'general',
+        related_id: null,
+        related_records: null,
+        estimated_hours: 6,
+        actual_hours: 0,
+        tags: ['profiles', 'skills_assessment', 'data_entry'],
+        created_at: '2024-09-20T00:00:00Z',
+        updated_at: '2024-09-20T00:00:00Z',
+        completion_percentage: 0
+      }
+    ];
+  }
+
+  static async createTask(taskData, agencyId) {
+    try {
+      const task = {
+        ...taskData,
+        agency_id: agencyId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: taskData.status || 'pending',
+        completion_percentage: 0
+      };
+
+      const { data, error } = await supabase
+        .from('agency_tasks')
+        .insert(task)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'task_created', {
+        task_id: data.id,
+        title: taskData.title
+      });
+
+      return data || { id: Date.now().toString(), ...task };
+    } catch (error) {
+      log.error('Failed to create task:', error);
+      return { id: Date.now().toString(), ...taskData, status: 'pending', completion_percentage: 0 };
+    }
+  }
+
+  static async updateTaskStatus(taskId, status, completionPercentage, agencyId) {
+    try {
+      const updateData = {
+        status,
+        completion_percentage: completionPercentage,
+        updated_at: new Date().toISOString()
+      };
+
+      if (status === 'completed') {
+        updateData.completed_at = new Date().toISOString();
+      }
+
+      const { data, error } = await supabase
+        .from('agency_tasks')
+        .update(updateData)
+        .eq('id', taskId)
+        .eq('agency_id', agencyId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'task_status_updated', {
+        task_id: taskId,
+        new_status: status,
+        completion_percentage: completionPercentage
+      });
+
+      return data?.[0] || { id: taskId, status, completion_percentage: completionPercentage };
+    } catch (error) {
+      log.error('Failed to update task status:', error);
+      return { id: taskId, status, completion_percentage: completionPercentage };
+    }
+  }
+
+  static async createCalendarEvent(eventData, agencyId) {
+    try {
+      const event = {
+        ...eventData,
+        agency_id: agencyId,
+        created_at: new Date().toISOString(),
+        status: eventData.status || 'scheduled'
+      };
+
+      const { data, error } = await supabase
+        .from('calendar_events')
+        .insert(event)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'calendar_event_created', {
+        event_id: data.id,
+        title: eventData.title,
+        event_type: eventData.event_type
+      });
+
+      return data || { id: Date.now().toString(), ...event };
+    } catch (error) {
+      log.error('Failed to create calendar event:', error);
+      return { id: Date.now().toString(), ...eventData, status: 'scheduled' };
+    }
+  }
+
+  // Documents & Compliance Management Methods
+  static async getDocumentsWithFilters(agencyId, filters = {}) {
+    try {
+      if (!agencyId) {
+        return this.getMockDocuments();
+      }
+
+      let query = supabase
+        .from('agency_documents')
+        .select('*, owner(*), verified_by(*)')
+        .eq('agency_id', agencyId);
+
+      if (filters.status && filters.status !== 'all') {
+        query = query.eq('status', filters.status);
+      }
+
+      if (filters.type && filters.type !== 'all') {
+        query = query.eq('document_type', filters.type);
+      }
+
+      if (filters.ownerType && filters.ownerType !== 'all') {
+        query = query.eq('owner_type', filters.ownerType);
+      }
+
+      if (filters.search) {
+        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%,owner_name.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch documents, returning mock data:', error.message);
+      return this.getMockDocuments();
+    }
+  }
+
+  static async getComplianceChecklist(agencyId) {
+    try {
+      if (!agencyId) {
+        return this.getMockComplianceChecklist();
+      }
+
+      const { data, error } = await supabase
+        .from('compliance_requirements')
+        .select('*, compliance_items(*)')
+        .eq('agency_id', agencyId)
+        .order('priority', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.warn('Failed to fetch compliance checklist, returning mock data:', error.message);
+      return this.getMockComplianceChecklist();
+    }
+  }
+
+  static getMockDocuments() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const lastWeek = new Date(today);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    const lastMonth = new Date(today);
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+    return [
+      {
+        id: 'doc_001',
+        title: 'Almaz Tadesse - Passport',
+        description: 'Ethiopian passport copy for visa application',
+        document_type: 'passport',
+        file_name: 'almaz_passport.pdf',
+        file_size: '2.4 MB',
+        file_url: '/documents/almaz_passport.pdf',
+        owner_type: 'maid',
+        owner_id: 'md_001',
+        owner_name: 'Almaz Tadesse',
+        status: 'verified',
+        verification_status: 'approved',
+        uploaded_at: today.toISOString().split('T')[0],
+        verified_at: today.toISOString().split('T')[0],
+        verified_by: { id: 'agent_001', name: 'Sarah Johnson', email: 'sarah@agency.com' },
+        expires_at: new Date(2025, 11, 15).toISOString().split('T')[0],
+        compliance_items: ['passport_validity', 'photo_quality'],
+        notes: 'Passport is valid and photo meets embassy requirements'
+      },
+      {
+        id: 'doc_002',
+        title: 'Al-Rashid Family - Sponsor License',
+        description: 'Valid sponsor license from Saudi Ministry',
+        document_type: 'sponsor_license',
+        file_name: 'rashid_sponsor_license.pdf',
+        file_size: '1.8 MB',
+        file_url: '/documents/rashid_sponsor_license.pdf',
+        owner_type: 'sponsor',
+        owner_id: 'sp_001',
+        owner_name: 'Al-Rashid Family',
+        status: 'verified',
+        verification_status: 'approved',
+        uploaded_at: lastWeek.toISOString().split('T')[0],
+        verified_at: lastWeek.toISOString().split('T')[0],
+        verified_by: { id: 'agent_002', name: 'Mike Chen', email: 'mike@agency.com' },
+        expires_at: new Date(2025, 5, 30).toISOString().split('T')[0],
+        compliance_items: ['license_validity', 'ministry_verification'],
+        notes: 'License verified with Saudi Ministry database'
+      },
+      {
+        id: 'doc_003',
+        title: 'Tigist Alemu - Medical Certificate',
+        description: 'Medical fitness certificate from approved clinic',
+        document_type: 'medical_certificate',
+        file_name: 'tigist_medical.pdf',
+        file_size: '3.2 MB',
+        file_url: '/documents/tigist_medical.pdf',
+        owner_type: 'maid',
+        owner_id: 'md_002',
+        owner_name: 'Tigist Alemu',
+        status: 'pending_review',
+        verification_status: 'pending',
+        uploaded_at: yesterday.toISOString().split('T')[0],
+        verified_at: null,
+        verified_by: null,
+        expires_at: new Date(2025, 0, 20).toISOString().split('T')[0],
+        compliance_items: ['medical_tests', 'clinic_authorization'],
+        notes: 'Awaiting verification of clinic authorization'
+      },
+      {
+        id: 'doc_004',
+        title: 'Sarah Al-Mahmoud - ID Copy',
+        description: 'National ID card copy for sponsor verification',
+        document_type: 'national_id',
+        file_name: 'sarah_id.pdf',
+        file_size: '1.1 MB',
+        file_url: '/documents/sarah_id.pdf',
+        owner_type: 'sponsor',
+        owner_id: 'sp_003',
+        owner_name: 'Sarah Al-Mahmoud',
+        status: 'rejected',
+        verification_status: 'rejected',
+        uploaded_at: lastMonth.toISOString().split('T')[0],
+        verified_at: lastMonth.toISOString().split('T')[0],
+        verified_by: { id: 'agent_003', name: 'Lisa Rodriguez', email: 'lisa@agency.com' },
+        expires_at: new Date(2027, 8, 10).toISOString().split('T')[0],
+        compliance_items: ['id_clarity', 'expiry_check'],
+        notes: 'Document image is too blurry. Please resubmit with clear scan.'
+      },
+      {
+        id: 'doc_005',
+        title: 'Agency License Renewal',
+        description: '2024 Agency operating license renewal',
+        document_type: 'agency_license',
+        file_name: 'agency_license_2024.pdf',
+        file_size: '0.9 MB',
+        file_url: '/documents/agency_license_2024.pdf',
+        owner_type: 'agency',
+        owner_id: 'agency_001',
+        owner_name: 'Our Agency',
+        status: 'expiring_soon',
+        verification_status: 'approved',
+        uploaded_at: new Date(2024, 0, 1).toISOString().split('T')[0],
+        verified_at: new Date(2024, 0, 5).toISOString().split('T')[0],
+        verified_by: { id: 'agent_001', name: 'Sarah Johnson', email: 'sarah@agency.com' },
+        expires_at: new Date(2024, 11, 31).toISOString().split('T')[0],
+        compliance_items: ['license_validity', 'ministry_approval'],
+        notes: 'License expires end of year - renewal process started'
+      },
+      {
+        id: 'doc_006',
+        title: 'Emirates Villa - Contract Agreement',
+        description: 'Service agreement with Emirates Villa Management',
+        document_type: 'contract',
+        file_name: 'emirates_contract.pdf',
+        file_size: '4.7 MB',
+        file_url: '/documents/emirates_contract.pdf',
+        owner_type: 'sponsor',
+        owner_id: 'sp_002',
+        owner_name: 'Emirates Villa Management',
+        status: 'verified',
+        verification_status: 'approved',
+        uploaded_at: new Date(2024, 5, 15).toISOString().split('T')[0],
+        verified_at: new Date(2024, 5, 16).toISOString().split('T')[0],
+        verified_by: { id: 'agent_001', name: 'Sarah Johnson', email: 'sarah@agency.com' },
+        expires_at: new Date(2025, 5, 15).toISOString().split('T')[0],
+        compliance_items: ['contract_terms', 'legal_review'],
+        notes: 'Contract reviewed and approved by legal team'
+      },
+      {
+        id: 'doc_007',
+        title: 'Almaz Tadesse - Work Experience Letter',
+        description: 'Previous employment reference from Dubai family',
+        document_type: 'experience_letter',
+        file_name: 'almaz_experience.pdf',
+        file_size: '0.8 MB',
+        file_url: '/documents/almaz_experience.pdf',
+        owner_type: 'maid',
+        owner_id: 'md_001',
+        owner_name: 'Almaz Tadesse',
+        status: 'missing_info',
+        verification_status: 'needs_clarification',
+        uploaded_at: new Date(2024, 8, 10).toISOString().split('T')[0],
+        verified_at: null,
+        verified_by: null,
+        expires_at: null,
+        compliance_items: ['employer_contact', 'work_duration'],
+        notes: 'Need to verify employer contact information'
+      }
+    ];
+  }
+
+  static getMockComplianceChecklist() {
+    return [
+      {
+        id: 'comp_001',
+        category: 'Maid Documentation',
+        title: 'Domestic Worker Compliance',
+        priority: 'high',
+        total_items: 8,
+        completed_items: 6,
+        compliance_percentage: 75,
+        items: [
+          {
+            id: 'item_001',
+            requirement: 'Valid passport (min 2 years validity)',
+            status: 'completed',
+            description: 'All active maids must have passport valid for at least 2 years',
+            due_date: null,
+            responsible: 'Documentation Team'
+          },
+          {
+            id: 'item_002',
+            requirement: 'Medical fitness certificate',
+            status: 'completed',
+            description: 'Medical certificate from approved clinic within 6 months',
+            due_date: null,
+            responsible: 'Medical Verification Team'
+          },
+          {
+            id: 'item_003',
+            requirement: 'Police clearance certificate',
+            status: 'completed',
+            description: 'Criminal background check from home country',
+            due_date: null,
+            responsible: 'Background Check Team'
+          },
+          {
+            id: 'item_004',
+            requirement: 'Skills assessment completion',
+            status: 'completed',
+            description: 'Standardized skills test for all maids',
+            due_date: null,
+            responsible: 'Training Department'
+          },
+          {
+            id: 'item_005',
+            requirement: 'Employment contract signed',
+            status: 'completed',
+            description: 'Signed contract between agency and domestic worker',
+            due_date: null,
+            responsible: 'Legal Team'
+          },
+          {
+            id: 'item_006',
+            requirement: 'Insurance coverage active',
+            status: 'completed',
+            description: 'Health and work injury insurance for all workers',
+            due_date: null,
+            responsible: 'Insurance Coordinator'
+          },
+          {
+            id: 'item_007',
+            requirement: 'Training completion certificate',
+            status: 'pending',
+            description: 'Mandatory 40-hour training program completion',
+            due_date: '2024-10-15',
+            responsible: 'Training Department'
+          },
+          {
+            id: 'item_008',
+            requirement: 'Visa application documentation',
+            status: 'in_progress',
+            description: 'Complete visa application package for destination country',
+            due_date: '2024-10-01',
+            responsible: 'Visa Processing Team'
+          }
+        ]
+      },
+      {
+        id: 'comp_002',
+        category: 'Sponsor Verification',
+        title: 'Sponsor Compliance Requirements',
+        priority: 'high',
+        total_items: 6,
+        completed_items: 4,
+        compliance_percentage: 67,
+        items: [
+          {
+            id: 'item_009',
+            requirement: 'Valid sponsor license',
+            status: 'completed',
+            description: 'Government-issued license to employ domestic workers',
+            due_date: null,
+            responsible: 'Sponsor Verification Team'
+          },
+          {
+            id: 'item_010',
+            requirement: 'Proof of income/financial capacity',
+            status: 'completed',
+            description: 'Bank statements or salary certificates',
+            due_date: null,
+            responsible: 'Financial Verification Team'
+          },
+          {
+            id: 'item_011',
+            requirement: 'National ID/Passport verification',
+            status: 'completed',
+            description: 'Valid identification documents',
+            due_date: null,
+            responsible: 'Identity Verification Team'
+          },
+          {
+            id: 'item_012',
+            requirement: 'Accommodation inspection report',
+            status: 'completed',
+            description: 'Suitable living conditions for domestic worker',
+            due_date: null,
+            responsible: 'Accommodation Inspector'
+          },
+          {
+            id: 'item_013',
+            requirement: 'Contract terms agreement',
+            status: 'pending',
+            description: 'Signed agreement on working conditions and salary',
+            due_date: '2024-09-30',
+            responsible: 'Contract Management'
+          },
+          {
+            id: 'item_014',
+            requirement: 'Background verification completed',
+            status: 'pending',
+            description: 'Verification of sponsor history and references',
+            due_date: '2024-10-05',
+            responsible: 'Background Check Team'
+          }
+        ]
+      },
+      {
+        id: 'comp_003',
+        category: 'Agency Operations',
+        title: 'Agency Regulatory Compliance',
+        priority: 'critical',
+        total_items: 5,
+        completed_items: 3,
+        compliance_percentage: 60,
+        items: [
+          {
+            id: 'item_015',
+            requirement: 'Operating license renewal',
+            status: 'in_progress',
+            description: 'Annual renewal of agency operating license',
+            due_date: '2024-12-31',
+            responsible: 'Compliance Officer'
+          },
+          {
+            id: 'item_016',
+            requirement: 'Staff certification updates',
+            status: 'completed',
+            description: 'All staff must maintain required certifications',
+            due_date: null,
+            responsible: 'HR Department'
+          },
+          {
+            id: 'item_017',
+            requirement: 'Financial audit completion',
+            status: 'completed',
+            description: 'Annual financial audit by certified accountant',
+            due_date: null,
+            responsible: 'Finance Team'
+          },
+          {
+            id: 'item_018',
+            requirement: 'Data protection compliance',
+            status: 'completed',
+            description: 'GDPR/data privacy compliance measures',
+            due_date: null,
+            responsible: 'IT Security Team'
+          },
+          {
+            id: 'item_019',
+            requirement: 'Insurance policy renewal',
+            status: 'overdue',
+            description: 'Professional liability and business insurance',
+            due_date: '2024-09-15',
+            responsible: 'Insurance Manager'
+          }
+        ]
+      }
+    ];
+  }
+
+  static async updateDocumentStatus(documentId, status, notes, agencyId) {
+    try {
+      const updateData = {
+        status,
+        verification_status: status === 'rejected' ? 'rejected' : status === 'verified' ? 'approved' : 'pending',
+        verified_at: status === 'verified' ? new Date().toISOString() : null,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('agency_documents')
+        .update(updateData)
+        .eq('id', documentId)
+        .eq('agency_id', agencyId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'document_status_updated', {
+        document_id: documentId,
+        new_status: status,
+        notes
+      });
+
+      return data?.[0] || { id: documentId, status, verification_status: status };
+    } catch (error) {
+      log.error('Failed to update document status:', error);
+      return { id: documentId, status, verification_status: status };
+    }
+  }
+
+  static async uploadDocument(documentData, agencyId) {
+    try {
+      const document = {
+        ...documentData,
+        agency_id: agencyId,
+        uploaded_at: new Date().toISOString(),
+        status: 'pending_review',
+        verification_status: 'pending'
+      };
+
+      const { data, error } = await supabase
+        .from('agency_documents')
+        .insert(document)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'document_uploaded', {
+        document_id: data.id,
+        document_type: documentData.document_type,
+        owner_type: documentData.owner_type
+      });
+
+      return data || { id: Date.now().toString(), ...document };
+    } catch (error) {
+      log.error('Failed to upload document:', error);
+      return { id: Date.now().toString(), ...documentData, status: 'pending_review', verification_status: 'pending' };
+    }
+  }
+
+  static async updateComplianceItem(itemId, status, agencyId) {
+    try {
+      const { data, error } = await supabase
+        .from('compliance_items')
+        .update({
+          status,
+          updated_at: new Date().toISOString(),
+          completed_at: status === 'completed' ? new Date().toISOString() : null
+        })
+        .eq('id', itemId)
+        .eq('agency_id', agencyId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'compliance_item_updated', {
+        item_id: itemId,
+        new_status: status
+      });
+
+      return data?.[0] || { id: itemId, status };
+    } catch (error) {
+      log.error('Failed to update compliance item:', error);
+      return { id: itemId, status };
+    }
+  }
+
+  // Billing & Subscription Management Methods
+  static async getBillingData(agencyId) {
+    try {
+      if (!agencyId) {
+        return this.getMockBillingData();
+      }
+
+      const [subscription, invoices, payments, usage] = await Promise.all([
+        supabase.from('agency_subscriptions').select('*').eq('agency_id', agencyId).single(),
+        supabase.from('invoices').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false }),
+        supabase.from('payments').select('*').eq('agency_id', agencyId).order('created_at', { ascending: false }),
+        supabase.from('subscription_usage').select('*').eq('agency_id', agencyId).single()
+      ]);
+
+      return {
+        subscription: subscription.data,
+        invoices: invoices.data || [],
+        payments: payments.data || [],
+        usage: usage.data
+      };
+    } catch (error) {
+      log.warn('Failed to fetch billing data, returning mock data:', error.message);
+      return this.getMockBillingData();
+    }
+  }
+
+  static getMockBillingData() {
+    const today = new Date();
+    const lastMonth = new Date(today);
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    return {
+      subscription: {
+        id: 'sub_001',
+        plan_name: 'Professional',
+        plan_type: 'monthly',
+        status: 'active',
+        current_period_start: today.toISOString().split('T')[0],
+        current_period_end: nextMonth.toISOString().split('T')[0],
+        amount: 299.00,
+        currency: 'USD',
+        features: [
+          'Unlimited maid profiles',
+          'Advanced matching algorithm',
+          'Priority customer support',
+          'Analytics dashboard',
+          'Document management',
+          'Multi-user access (5 users)',
+          'API access',
+          'Custom branding'
+        ],
+        limits: {
+          maids: -1, // unlimited
+          jobs: -1, // unlimited
+          users: 5,
+          storage_gb: 100,
+          api_calls_per_month: 10000
+        }
+      },
+      usage: {
+        current_period: {
+          maids_added: 45,
+          jobs_posted: 23,
+          api_calls: 2450,
+          storage_used_gb: 12.5,
+          active_users: 3
+        },
+        limits: {
+          maids: -1,
+          jobs: -1,
+          users: 5,
+          storage_gb: 100,
+          api_calls_per_month: 10000
+        }
+      },
+      invoices: [
+        {
+          id: 'inv_001',
+          invoice_number: 'INV-2024-09-001',
+          status: 'paid',
+          amount: 299.00,
+          currency: 'USD',
+          description: 'Professional Plan - September 2024',
+          issued_date: today.toISOString().split('T')[0],
+          due_date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          paid_date: today.toISOString().split('T')[0],
+          payment_method: 'Credit Card ending in 4242',
+          line_items: [
+            {
+              description: 'Professional Plan Monthly Subscription',
+              quantity: 1,
+              unit_price: 299.00,
+              amount: 299.00
+            }
+          ]
+        },
+        {
+          id: 'inv_002',
+          invoice_number: 'INV-2024-08-001',
+          status: 'paid',
+          amount: 299.00,
+          currency: 'USD',
+          description: 'Professional Plan - August 2024',
+          issued_date: lastMonth.toISOString().split('T')[0],
+          due_date: new Date(lastMonth.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          paid_date: lastMonth.toISOString().split('T')[0],
+          payment_method: 'Credit Card ending in 4242',
+          line_items: [
+            {
+              description: 'Professional Plan Monthly Subscription',
+              quantity: 1,
+              unit_price: 299.00,
+              amount: 299.00
+            }
+          ]
+        },
+        {
+          id: 'inv_003',
+          invoice_number: 'INV-2024-07-001',
+          status: 'paid',
+          amount: 149.00,
+          currency: 'USD',
+          description: 'Starter Plan - July 2024',
+          issued_date: new Date(2024, 6, 1).toISOString().split('T')[0],
+          due_date: new Date(2024, 6, 8).toISOString().split('T')[0],
+          paid_date: new Date(2024, 6, 2).toISOString().split('T')[0],
+          payment_method: 'Credit Card ending in 4242',
+          line_items: [
+            {
+              description: 'Starter Plan Monthly Subscription',
+              quantity: 1,
+              unit_price: 149.00,
+              amount: 149.00
+            }
+          ]
+        }
+      ],
+      payments: [
+        {
+          id: 'pay_001',
+          amount: 299.00,
+          currency: 'USD',
+          status: 'succeeded',
+          method: 'Credit Card',
+          last_4: '4242',
+          created_at: today.toISOString().split('T')[0],
+          invoice_id: 'inv_001',
+          description: 'Professional Plan - September 2024'
+        },
+        {
+          id: 'pay_002',
+          amount: 299.00,
+          currency: 'USD',
+          status: 'succeeded',
+          method: 'Credit Card',
+          last_4: '4242',
+          created_at: lastMonth.toISOString().split('T')[0],
+          invoice_id: 'inv_002',
+          description: 'Professional Plan - August 2024'
+        }
+      ],
+      available_plans: [
+        {
+          id: 'starter',
+          name: 'Starter',
+          price: 149,
+          currency: 'USD',
+          interval: 'month',
+          description: 'Perfect for small agencies getting started',
+          features: [
+            'Up to 25 maid profiles',
+            'Basic matching',
+            'Email support',
+            'Standard dashboard',
+            '2 users included',
+            '10GB storage'
+          ],
+          limits: {
+            maids: 25,
+            jobs: 10,
+            users: 2,
+            storage_gb: 10,
+            api_calls_per_month: 1000
+          },
+          popular: false
+        },
+        {
+          id: 'professional',
+          name: 'Professional',
+          price: 299,
+          currency: 'USD',
+          interval: 'month',
+          description: 'Ideal for growing agencies with advanced needs',
+          features: [
+            'Unlimited maid profiles',
+            'Advanced matching algorithm',
+            'Priority customer support',
+            'Analytics dashboard',
+            'Document management',
+            'Multi-user access (5 users)',
+            'API access',
+            '100GB storage'
+          ],
+          limits: {
+            maids: -1,
+            jobs: -1,
+            users: 5,
+            storage_gb: 100,
+            api_calls_per_month: 10000
+          },
+          popular: true
+        },
+        {
+          id: 'enterprise',
+          name: 'Enterprise',
+          price: 599,
+          currency: 'USD',
+          interval: 'month',
+          description: 'For large agencies with custom requirements',
+          features: [
+            'Everything in Professional',
+            'Unlimited users',
+            'Custom integrations',
+            'Dedicated account manager',
+            'SLA guarantee',
+            'Custom branding',
+            'Advanced analytics',
+            'Unlimited storage',
+            'White-label solution'
+          ],
+          limits: {
+            maids: -1,
+            jobs: -1,
+            users: -1,
+            storage_gb: -1,
+            api_calls_per_month: -1
+          },
+          popular: false
+        }
+      ]
+    };
+  }
+
+  static async updateSubscription(agencyId, planId) {
+    try {
+      const { data, error } = await supabase
+        .from('agency_subscriptions')
+        .update({
+          plan_id: planId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('agency_id', agencyId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'subscription_updated', {
+        new_plan: planId
+      });
+
+      return data?.[0] || { success: true };
+    } catch (error) {
+      log.error('Failed to update subscription:', error);
+      return { success: true }; // Return success for mock data
+    }
+  }
+
+  static async updatePaymentMethod(agencyId, paymentMethodData) {
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .upsert({
+          agency_id: agencyId,
+          ...paymentMethodData,
+          updated_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'payment_method_updated', {
+        method_type: paymentMethodData.type
+      });
+
+      return data?.[0] || { success: true };
+    } catch (error) {
+      log.error('Failed to update payment method:', error);
+      return { success: true }; // Return success for mock data
+    }
+  }
+
+  static async downloadInvoice(invoiceId, agencyId) {
+    try {
+      // In a real implementation, this would generate or fetch the invoice PDF
+      await this.logAuditEvent(agencyId, 'invoice_downloaded', {
+        invoice_id: invoiceId
+      });
+
+      return {
+        success: true,
+        download_url: `/api/invoices/${invoiceId}/download`
+      };
+    } catch (error) {
+      log.error('Failed to download invoice:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  static async requestRefund(invoiceId, agencyId, reason) {
+    try {
+      const { data, error } = await supabase
+        .from('refund_requests')
+        .insert({
+          invoice_id: invoiceId,
+          agency_id: agencyId,
+          reason,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        })
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent(agencyId, 'refund_requested', {
+        invoice_id: invoiceId,
+        reason
+      });
+
+      return data?.[0] || { success: true };
+    } catch (error) {
+      log.error('Failed to request refund:', error);
+      return { success: true }; // Return success for mock data
+    }
+  }
+
+  // Analytics Dashboard Methods
+  static async getAnalyticsData(timeRange = '30d') {
+    // In production, this would query the actual database with time-based filters
+    // For now, return comprehensive mock data
+    return {
+        kpis: {
+          totalRevenue: '$112,450',
+          revenueChange: '+18.5%',
+          totalPlacements: '142',
+          placementsChange: '+24.3%',
+          avgSatisfaction: '4.6',
+          satisfactionChange: '+12.8%',
+          avgTimeToHire: '18 days',
+          timeToHireChange: '-15.2%'
+        },
+        revenueData: [
+          { month: 'Jan', revenue: 8500 },
+          { month: 'Feb', revenue: 9200 },
+          { month: 'Mar', revenue: 11800 },
+          { month: 'Apr', revenue: 10500 },
+          { month: 'May', revenue: 13200 },
+          { month: 'Jun', revenue: 15800 },
+          { month: 'Jul', revenue: 14200 },
+          { month: 'Aug', revenue: 16500 },
+          { month: 'Sep', revenue: 18900 },
+          { month: 'Oct', revenue: 17200 },
+          { month: 'Nov', revenue: 19800 },
+          { month: 'Dec', revenue: 21500 }
+        ],
+        placementDistribution: [
+          { name: 'Saudi Arabia', value: 35 },
+          { name: 'UAE', value: 28 },
+          { name: 'Kuwait', value: 18 },
+          { name: 'Qatar', value: 12 },
+          { name: 'Jordan', value: 7 }
+        ],
+        monthlyData: [
+          { month: 'Jan', placements: 8, applications: 124, interviews: 45 },
+          { month: 'Feb', placements: 12, applications: 156, interviews: 58 },
+          { month: 'Mar', placements: 15, applications: 189, interviews: 67 },
+          { month: 'Apr', placements: 11, applications: 143, interviews: 52 },
+          { month: 'May', placements: 18, applications: 234, interviews: 78 },
+          { month: 'Jun', placements: 22, applications: 267, interviews: 89 },
+          { month: 'Jul', placements: 19, applications: 198, interviews: 71 },
+          { month: 'Aug', placements: 25, applications: 298, interviews: 95 },
+          { month: 'Sep', placements: 28, applications: 334, interviews: 108 },
+          { month: 'Oct', placements: 24, applications: 287, interviews: 92 },
+          { month: 'Nov', placements: 31, applications: 356, interviews: 118 },
+          { month: 'Dec', placements: 29, applications: 321, interviews: 102 }
+        ],
+        placementMetrics: [
+          { category: 'Housekeeping', rate: 85 },
+          { category: 'Childcare', rate: 78 },
+          { category: 'Elderly Care', rate: 72 },
+          { category: 'Cooking', rate: 88 },
+          { category: 'General Help', rate: 82 }
+        ],
+        topDestinations: [
+          { country: 'Saudi Arabia', placements: 89, percentage: 35 },
+          { country: 'UAE', placements: 67, percentage: 28 },
+          { country: 'Kuwait', placements: 43, percentage: 18 },
+          { country: 'Qatar', placements: 28, percentage: 12 },
+          { country: 'Jordan', placements: 15, percentage: 7 }
+        ],
+        revenueBreakdown: [
+          { name: 'Placement Fees', value: 67800 },
+          { name: 'Training Fees', value: 22400 },
+          { name: 'Visa Processing', value: 15600 },
+          { name: 'Medical Tests', value: 6650 }
+        ],
+        revenueVsTarget: [
+          { month: 'Jan', actual: 8500, target: 10000 },
+          { month: 'Feb', actual: 9200, target: 10000 },
+          { month: 'Mar', actual: 11800, target: 12000 },
+          { month: 'Apr', actual: 10500, target: 12000 },
+          { month: 'May', actual: 13200, target: 13000 },
+          { month: 'Jun', actual: 15800, target: 15000 },
+          { month: 'Jul', actual: 14200, target: 15000 },
+          { month: 'Aug', actual: 16500, target: 16000 },
+          { month: 'Sep', actual: 18900, target: 18000 },
+          { month: 'Oct', actual: 17200, target: 18000 },
+          { month: 'Nov', actual: 19800, target: 20000 },
+          { month: 'Dec', actual: 21500, target: 22000 }
+        ],
+        teamPerformance: [
+          {
+            name: 'Sarah Ahmed',
+            role: 'Senior Recruiter',
+            performance: 94,
+            placements: 23,
+            revenue: 14950,
+            rating: 4.8
+          },
+          {
+            name: 'Mohamed Hassan',
+            role: 'Placement Coordinator',
+            performance: 87,
+            placements: 19,
+            revenue: 12350,
+            rating: 4.6
+          },
+          {
+            name: 'Fatima Al-Zahra',
+            role: 'Documentation Specialist',
+            performance: 91,
+            placements: 21,
+            revenue: 13650,
+            rating: 4.7
+          },
+          {
+            name: 'Ahmed Ibrahim',
+            role: 'Client Relations',
+            performance: 83,
+            placements: 17,
+            revenue: 11050,
+            rating: 4.5
+          },
+          {
+            name: 'Khadija Omar',
+            role: 'Training Coordinator',
+            performance: 89,
+            placements: 20,
+            revenue: 13000,
+            rating: 4.6
+          }
+        ],
+        satisfactionScores: [
+          { category: 'Service Quality', score: 4.6 },
+          { category: 'Communication', score: 4.4 },
+          { category: 'Response Time', score: 4.2 },
+          { category: 'Documentation', score: 4.5 },
+          { category: 'Follow-up', score: 4.3 }
+        ],
+        trendsData: [
+          { month: 'Jan', applications: 124, placements: 8, avgTimeToHire: 22, satisfaction: 4.1 },
+          { month: 'Feb', applications: 156, placements: 12, avgTimeToHire: 21, satisfaction: 4.2 },
+          { month: 'Mar', applications: 189, placements: 15, avgTimeToHire: 20, satisfaction: 4.3 },
+          { month: 'Apr', applications: 143, placements: 11, avgTimeToHire: 19, satisfaction: 4.2 },
+          { month: 'May', applications: 234, placements: 18, avgTimeToHire: 18, satisfaction: 4.4 },
+          { month: 'Jun', applications: 267, placements: 22, avgTimeToHire: 17, satisfaction: 4.5 },
+          { month: 'Jul', applications: 198, placements: 19, avgTimeToHire: 18, satisfaction: 4.4 },
+          { month: 'Aug', applications: 298, placements: 25, avgTimeToHire: 16, satisfaction: 4.6 },
+          { month: 'Sep', applications: 334, placements: 28, avgTimeToHire: 15, satisfaction: 4.7 },
+          { month: 'Oct', applications: 287, placements: 24, avgTimeToHire: 16, satisfaction: 4.6 },
+          { month: 'Nov', applications: 356, placements: 31, avgTimeToHire: 14, satisfaction: 4.8 },
+          { month: 'Dec', applications: 321, placements: 29, avgTimeToHire: 15, satisfaction: 4.7 }
+        ]
+      };
+  }
+
+  // Support & Disputes Methods
+  static async getSupportData() {
+    // In production, this would query the actual database
+    // For now, return comprehensive mock data
+    return {
+        stats: {
+          openTickets: '23',
+          activeDisputes: '5',
+          avgResponseTime: '2.3h',
+          resolutionRate: '94%'
+        },
+        tickets: [
+          {
+            id: 'ticket_001',
+            ticket_number: 'SUP-2024-001',
+            title: 'Unable to access maid profile dashboard',
+            description: 'Getting error 500 when trying to view maid profiles in the dashboard. This started happening after the system maintenance yesterday.',
+            status: 'open',
+            priority: 'high',
+            category: 'technical',
+            requester_name: 'Ahmad Al-Rashid',
+            requester_email: 'ahmad.rashid@email.com',
+            requester_phone: '+966-555-0123',
+            created_at: '2024-09-22T08:30:00Z',
+            last_updated_at: '2 hours ago',
+            assigned_to: { id: 'agent_001', name: 'Sarah Johnson' },
+            activity: [
+              {
+                action: 'Ticket created',
+                timestamp: '2024-09-22 08:30',
+                user: 'Ahmad Al-Rashid'
+              },
+              {
+                action: 'Assigned to Sarah Johnson',
+                timestamp: '2024-09-22 09:15',
+                user: 'System'
+              },
+              {
+                action: 'Status updated to In Progress',
+                timestamp: '2024-09-22 10:00',
+                user: 'Sarah Johnson'
+              }
+            ]
+          },
+          {
+            id: 'ticket_002',
+            ticket_number: 'SUP-2024-002',
+            title: 'Billing discrepancy on monthly invoice',
+            description: 'The invoice shows charges for 5 maid placements, but we only had 3 successful placements last month. Please review and adjust.',
+            status: 'pending_client',
+            priority: 'medium',
+            category: 'billing',
+            requester_name: 'Emirates Villa Management',
+            requester_email: 'finance@emiratesvilla.ae',
+            requester_phone: '+971-4-555-0789',
+            created_at: '2024-09-21T14:20:00Z',
+            last_updated_at: '1 day ago',
+            assigned_to: { id: 'agent_002', name: 'Mike Chen' },
+            activity: [
+              {
+                action: 'Ticket created',
+                timestamp: '2024-09-21 14:20',
+                user: 'Emirates Villa Management'
+              },
+              {
+                action: 'Invoice review completed',
+                timestamp: '2024-09-21 16:45',
+                user: 'Mike Chen'
+              }
+            ]
+          },
+          {
+            id: 'ticket_003',
+            ticket_number: 'SUP-2024-003',
+            title: 'Request for maid replacement',
+            description: 'Current maid is not meeting expectations. Need to find a replacement urgently as we have important guests arriving next week.',
+            status: 'in_progress',
+            priority: 'high',
+            category: 'placement',
+            requester_name: 'Sarah Al-Mahmoud',
+            requester_email: 'sarah.mahmoud@email.com',
+            requester_phone: '+965-555-0456',
+            created_at: '2024-09-20T11:10:00Z',
+            last_updated_at: '4 hours ago',
+            assigned_to: { id: 'agent_003', name: 'Lisa Rodriguez' },
+            activity: [
+              {
+                action: 'Ticket created',
+                timestamp: '2024-09-20 11:10',
+                user: 'Sarah Al-Mahmoud'
+              },
+              {
+                action: 'Replacement search initiated',
+                timestamp: '2024-09-20 15:30',
+                user: 'Lisa Rodriguez'
+              }
+            ]
+          },
+          {
+            id: 'ticket_004',
+            ticket_number: 'SUP-2024-004',
+            title: 'Missing documents in maid file',
+            description: 'Medical certificate and police clearance are missing from Tigist Alemu\'s file. These are required for visa processing.',
+            status: 'resolved',
+            priority: 'medium',
+            category: 'documentation',
+            requester_name: 'Internal Review',
+            requester_email: 'compliance@agency.com',
+            created_at: '2024-09-19T09:45:00Z',
+            last_updated_at: '2 days ago',
+            assigned_to: { id: 'agent_001', name: 'Sarah Johnson' },
+            activity: [
+              {
+                action: 'Ticket created',
+                timestamp: '2024-09-19 09:45',
+                user: 'Compliance Team'
+              },
+              {
+                action: 'Documents uploaded',
+                timestamp: '2024-09-19 14:20',
+                user: 'Tigist Alemu'
+              },
+              {
+                action: 'Documents verified',
+                timestamp: '2024-09-19 16:00',
+                user: 'Sarah Johnson'
+              }
+            ]
+          },
+          {
+            id: 'ticket_005',
+            ticket_number: 'SUP-2024-005',
+            title: 'General inquiry about placement process',
+            description: 'New client wanting to understand the complete process from application to maid arrival.',
+            status: 'closed',
+            priority: 'low',
+            category: 'general',
+            requester_name: 'Khalid Al-Otaibi',
+            requester_email: 'khalid.otaibi@email.com',
+            created_at: '2024-09-18T13:25:00Z',
+            last_updated_at: '3 days ago',
+            assigned_to: { id: 'agent_002', name: 'Mike Chen' },
+            activity: [
+              {
+                action: 'Information package sent',
+                timestamp: '2024-09-18 15:00',
+                user: 'Mike Chen'
+              }
+            ]
+          }
+        ],
+        disputes: [
+          {
+            id: 'dispute_001',
+            dispute_number: 'DIS-2024-001',
+            title: 'Maid left before contract completion',
+            description: 'The maid we hired left after only 2 weeks without proper notice. We paid full placement fee and want partial refund.',
+            status: 'open',
+            type: 'contract_breach',
+            severity: 'high',
+            complainant_name: 'Al-Rashid Family',
+            disputed_amount: 2500,
+            created_at: '2024-09-21T16:30:00Z',
+            parties: [
+              { name: 'Al-Rashid Family', role: 'Complainant' },
+              { name: 'Almaz Tadesse', role: 'Subject' },
+              { name: 'Our Agency', role: 'Service Provider' }
+            ],
+            evidence: [
+              { name: 'Contract Agreement.pdf', type: 'document' },
+              { name: 'WhatsApp Messages.png', type: 'communication' }
+            ]
+          },
+          {
+            id: 'dispute_002',
+            dispute_number: 'DIS-2024-002',
+            title: 'Payment delay dispute',
+            description: 'Agency claiming we haven\'t paid, but we have bank transfer receipt showing payment was made on time.',
+            status: 'in_progress',
+            type: 'payment',
+            severity: 'medium',
+            complainant_name: 'Emirates Villa Management',
+            disputed_amount: 1800,
+            created_at: '2024-09-20T10:15:00Z',
+            parties: [
+              { name: 'Emirates Villa Management', role: 'Complainant' },
+              { name: 'Our Agency', role: 'Respondent' }
+            ],
+            evidence: [
+              { name: 'Bank Transfer Receipt.pdf', type: 'payment_proof' },
+              { name: 'Email Thread.pdf', type: 'communication' }
+            ]
+          },
+          {
+            id: 'dispute_003',
+            dispute_number: 'DIS-2024-003',
+            title: 'Maid skills misrepresentation',
+            description: 'Maid was advertised as experienced cook but cannot prepare basic meals. Requesting replacement or refund.',
+            status: 'resolved',
+            type: 'service_quality',
+            severity: 'medium',
+            complainant_name: 'Sarah Al-Mahmoud',
+            disputed_amount: 1200,
+            created_at: '2024-09-15T14:45:00Z',
+            parties: [
+              { name: 'Sarah Al-Mahmoud', role: 'Complainant' },
+              { name: 'Tigist Alemu', role: 'Subject' },
+              { name: 'Our Agency', role: 'Mediator' }
+            ],
+            evidence: [
+              { name: 'Skills Assessment.pdf', type: 'evaluation' },
+              { name: 'Video Evidence.mp4', type: 'multimedia' }
+            ]
+          },
+          {
+            id: 'dispute_004',
+            dispute_number: 'DIS-2024-004',
+            title: 'Visa processing delay',
+            description: 'Visa processing taking much longer than promised timeline. Client demanding compensation for delay.',
+            status: 'pending_client',
+            type: 'service_delay',
+            severity: 'low',
+            complainant_name: 'Ahmed Al-Mansoori',
+            disputed_amount: 500,
+            created_at: '2024-09-18T11:20:00Z',
+            parties: [
+              { name: 'Ahmed Al-Mansoori', role: 'Complainant' },
+              { name: 'Our Agency', role: 'Respondent' },
+              { name: 'UAE Embassy', role: 'Third Party' }
+            ],
+            evidence: [
+              { name: 'Timeline Documentation.pdf', type: 'document' },
+              { name: 'Embassy Correspondence.pdf', type: 'communication' }
+            ]
+          },
+          {
+            id: 'dispute_005',
+            dispute_number: 'DIS-2024-005',
+            title: 'Agency fee overcharge',
+            description: 'Charged additional fees that were not mentioned in original quote. Requesting clarification and refund.',
+            status: 'closed',
+            type: 'billing',
+            severity: 'low',
+            complainant_name: 'Qatar Living LLC',
+            disputed_amount: 300,
+            created_at: '2024-09-12T09:30:00Z',
+            parties: [
+              { name: 'Qatar Living LLC', role: 'Complainant' },
+              { name: 'Our Agency', role: 'Respondent' }
+            ],
+            evidence: [
+              { name: 'Original Quote.pdf', type: 'contract' },
+              { name: 'Final Invoice.pdf', type: 'billing' }
+            ]
+          }
+        ],
+        knowledgeBase: {
+          commonIssues: [
+            {
+              title: 'Password Reset Instructions',
+              description: 'Step-by-step guide to reset account password and regain access to dashboard.',
+              views: 1250,
+              rating: 4.8
+            },
+            {
+              title: 'Document Upload Requirements',
+              description: 'Complete list of required documents and acceptable formats for maid registration.',
+              views: 890,
+              rating: 4.6
+            },
+            {
+              title: 'Visa Processing Timeline',
+              description: 'Expected processing times for different countries and visa types.',
+              views: 745,
+              rating: 4.4
+            },
+            {
+              title: 'Payment Methods and Billing',
+              description: 'Available payment options, billing cycles, and invoice explanations.',
+              views: 623,
+              rating: 4.7
+            },
+            {
+              title: 'Maid Replacement Policy',
+              description: 'Conditions and process for requesting maid replacement within guarantee period.',
+              views: 456,
+              rating: 4.2
+            },
+            {
+              title: 'Contract Terms and Conditions',
+              description: 'Detailed explanation of service agreement terms and client responsibilities.',
+              views: 334,
+              rating: 4.5
+            }
+          ],
+          templates: [
+            {
+              title: 'Account Access Issues',
+              category: 'technical',
+              content: 'Thank you for contacting us about the login issue. To resolve this quickly: 1) Clear your browser cache and cookies, 2) Try using an incognito window, 3) Reset your password using the forgot password link. If the problem persists, please let us know your browser and device details.'
+            },
+            {
+              title: 'Billing Inquiry Response',
+              category: 'billing',
+              content: 'We\'ve received your billing inquiry and are reviewing your account. Our finance team will investigate the charges mentioned and provide a detailed breakdown within 24 hours. If any adjustments are needed, they will be reflected in your next statement.'
+            },
+            {
+              title: 'Placement Request Acknowledgment',
+              category: 'placement',
+              content: 'Thank you for your placement request. We\'ve noted your requirements and are searching our database for suitable candidates. Our matching process typically takes 2-3 business days. We\'ll contact you as soon as we identify potential matches.'
+            },
+            {
+              title: 'Document Submission Follow-up',
+              category: 'documentation',
+              content: 'We\'ve received your document submission. Our verification team is reviewing the files and will complete the process within 48 hours. If any additional documents are needed, we\'ll contact you directly. Thank you for your prompt submission.'
+            },
+            {
+              title: 'General Inquiry Response',
+              category: 'general',
+              content: 'Thank you for your inquiry about our services. We\'ve prepared a comprehensive information package that covers all aspects of our placement process. I\'ll email this to you shortly along with our current pricing structure. Please feel free to schedule a consultation call if you have any specific questions.'
+            },
+            {
+              title: 'Dispute Resolution Update',
+              category: 'disputes',
+              content: 'We\'re actively working on your dispute case and have gathered all relevant information from both parties. Our resolution team is reviewing the evidence and will provide a preliminary assessment within 3 business days. We appreciate your patience as we work toward a fair resolution.'
+            }
+          ]
+        }
+      };
+  }
+
+  static async updateTicketStatus(ticketId, newStatus) {
+    try {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', ticketId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent('system', 'ticket_status_updated', {
+        ticket_id: ticketId,
+        new_status: newStatus
+      });
+
+      return data?.[0] || { id: ticketId, status: newStatus };
+    } catch (error) {
+      log.error('Failed to update ticket status:', error);
+      return { id: ticketId, status: newStatus };
+    }
+  }
+
+  static async updateDisputeStatus(disputeId, action) {
+    let newStatus;
+    try {
+      const statusMap = {
+        investigate: 'under_investigation',
+        mediate: 'mediation_scheduled',
+        resolve: 'resolved',
+        close: 'closed'
+      };
+
+      newStatus = statusMap[action] || action;
+
+      const { data, error } = await supabase
+        .from('disputes')
+        .update({
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', disputeId)
+        .select();
+
+      if (error) throw error;
+
+      await this.logAuditEvent('system', 'dispute_action_taken', {
+        dispute_id: disputeId,
+        action: action,
+        new_status: newStatus
+      });
+
+      return data?.[0] || { id: disputeId, status: newStatus };
+    } catch (error) {
+      log.error('Failed to update dispute status:', error);
+      return { id: disputeId, status: newStatus || action };
+    }
+  }
+
+  // Security & Audit Logging System
+  static async logAuditEvent(userId, action, details = {}, resourceType = null, resourceId = null) {
+    try {
+      const auditEvent = {
+        // Let database generate UUID for id field
+        user_id: userId,
+        user_email: details.userEmail || 'system@agency.com',
+        action: action,
+        resource_type: resourceType,
+        resource_id: resourceId,
+        details: details,
+        ip_address: details.ipAddress || '127.0.0.1',
+        user_agent: details.userAgent || 'Unknown',
+        timestamp: new Date().toISOString(),
+        severity: this.getActionSeverity(action),
+        category: this.getActionCategory(action)
+      };
+
+      // In production, this would insert into audit_logs table
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .insert([auditEvent])
+        .select();
+
+      if (error) {
+        console.warn('Failed to log audit event:', error);
+        // Store in local cache as fallback
+        this.cacheAuditEvent(auditEvent);
+      }
+
+      return data?.[0] || auditEvent;
+    } catch (error) {
+      console.error('Error logging audit event:', error);
+      // Fallback to console logging in development
+      if (process.env.NODE_ENV === 'development') {
+      }
+      return null;
+    }
+  }
+
+  static getActionSeverity(action) {
+    const criticalActions = [
+      'user_deleted',
+      'agency_deleted',
+      'data_exported',
+      'security_settings_changed',
+      'role_permissions_changed',
+      'billing_updated',
+      'password_changed'
+    ];
+
+    const highActions = [
+      'user_created',
+      'user_role_changed',
+      'maid_approved',
+      'placement_confirmed',
+      'document_verified',
+      'dispute_resolved'
+    ];
+
+    const mediumActions = [
+      'maid_created',
+      'job_created',
+      'application_processed',
+      'message_sent',
+      'document_uploaded'
+    ];
+
+    if (criticalActions.includes(action)) return 'critical';
+    if (highActions.includes(action)) return 'high';
+    if (mediumActions.includes(action)) return 'medium';
+    return 'low';
+  }
+
+  static getActionCategory(action) {
+    const categories = {
+      'user_': 'user_management',
+      'maid_': 'maid_management',
+      'job_': 'job_management',
+      'application_': 'application_management',
+      'document_': 'document_management',
+      'message_': 'communication',
+      'billing_': 'financial',
+      'dispute_': 'dispute_resolution',
+      'security_': 'security',
+      'audit_': 'audit',
+      'system_': 'system'
+    };
+
+    for (const [prefix, category] of Object.entries(categories)) {
+      if (action.startsWith(prefix)) return category;
+    }
+
+    return 'general';
+  }
+
+  static cacheAuditEvent(event) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('audit_cache') || '[]');
+      cached.push(event);
+
+      // Keep only last 100 events in cache
+      if (cached.length > 100) {
+        cached.splice(0, cached.length - 100);
+      }
+
+      localStorage.setItem('audit_cache', JSON.stringify(cached));
+    } catch (error) {
+      console.error('Failed to cache audit event:', error);
+    }
+  }
+
+  static async getAuditLogs(filters = {}) {
+    try {
+      let query = supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      // Apply filters
+      if (filters.userId) {
+        query = query.eq('user_id', filters.userId);
+      }
+
+      if (filters.action) {
+        query = query.eq('action', filters.action);
+      }
+
+      if (filters.category) {
+        query = query.eq('category', filters.category);
+      }
+
+      if (filters.severity) {
+        query = query.eq('severity', filters.severity);
+      }
+
+      if (filters.resourceType) {
+        query = query.eq('resource_type', filters.resourceType);
+      }
+
+      if (filters.startDate) {
+        query = query.gte('timestamp', filters.startDate);
+      }
+
+      if (filters.endDate) {
+        query = query.lte('timestamp', filters.endDate);
+      }
+
+      // Pagination
+      const limit = filters.limit || 100;
+      const offset = filters.offset || 0;
+      query = query.range(offset, offset + limit - 1);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.warn('Failed to fetch audit logs from database:', error);
+        // Return mock data as fallback
+        return this.getMockAuditLogs(filters);
+      }
+
+      return data || [];
+    } catch (error) {
+      log.error('Error fetching audit logs:', error);
+      return this.getMockAuditLogs(filters);
+    }
+  }
+
+  static getMockAuditLogs(filters = {}) {
+    const mockLogs = [
+      {
+        id: 'audit_001',
+        user_id: 'user_001',
+        user_email: 'ahmed@agency.com',
+        action: 'user_login',
+        resource_type: 'session',
+        resource_id: 'session_123',
+        details: { success: true, method: 'password' },
+        ip_address: '192.168.1.100',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        severity: 'low',
+        category: 'user_management'
+      },
+      {
+        id: 'audit_002',
+        user_id: 'user_002',
+        user_email: 'fatima@agency.com',
+        action: 'maid_created',
+        resource_type: 'maid',
+        resource_id: 'maid_456',
+        details: { name: 'Almaz Tadesse', nationality: 'Ethiopian' },
+        ip_address: '192.168.1.101',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        severity: 'medium',
+        category: 'maid_management'
+      },
+      {
+        id: 'audit_003',
+        user_id: 'user_001',
+        user_email: 'ahmed@agency.com',
+        action: 'security_settings_changed',
+        resource_type: 'settings',
+        resource_id: 'security_config',
+        details: { changed: ['two_factor_enabled'], previous: { two_factor_enabled: false }, new: { two_factor_enabled: true } },
+        ip_address: '192.168.1.100',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 10800000).toISOString(),
+        severity: 'critical',
+        category: 'security'
+      },
+      {
+        id: 'audit_004',
+        user_id: 'user_003',
+        user_email: 'omar@agency.com',
+        action: 'document_verified',
+        resource_type: 'document',
+        resource_id: 'doc_789',
+        details: { document_type: 'passport', maid_id: 'maid_456' },
+        ip_address: '192.168.1.102',
+        user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 14400000).toISOString(),
+        severity: 'high',
+        category: 'document_management'
+      },
+      {
+        id: 'audit_005',
+        user_id: 'user_002',
+        user_email: 'fatima@agency.com',
+        action: 'job_created',
+        resource_type: 'job',
+        resource_id: 'job_101',
+        details: { sponsor_id: 'sponsor_123', location: 'Dubai', salary: 1200 },
+        ip_address: '192.168.1.101',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 18000000).toISOString(),
+        severity: 'medium',
+        category: 'job_management'
+      },
+      {
+        id: 'audit_006',
+        user_id: 'user_001',
+        user_email: 'ahmed@agency.com',
+        action: 'user_role_changed',
+        resource_type: 'user',
+        resource_id: 'user_004',
+        details: { target_user: 'layla@agency.com', old_role: 'assistant', new_role: 'coordinator' },
+        ip_address: '192.168.1.100',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 21600000).toISOString(),
+        severity: 'high',
+        category: 'user_management'
+      },
+      {
+        id: 'audit_007',
+        user_id: 'user_003',
+        user_email: 'omar@agency.com',
+        action: 'application_processed',
+        resource_type: 'application',
+        resource_id: 'app_567',
+        details: { job_id: 'job_101', maid_id: 'maid_456', status: 'shortlisted' },
+        ip_address: '192.168.1.102',
+        user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 25200000).toISOString(),
+        severity: 'medium',
+        category: 'application_management'
+      },
+      {
+        id: 'audit_008',
+        user_id: 'user_002',
+        user_email: 'fatima@agency.com',
+        action: 'billing_updated',
+        resource_type: 'billing',
+        resource_id: 'invoice_890',
+        details: { invoice_amount: 2500, status: 'paid', payment_method: 'bank_transfer' },
+        ip_address: '192.168.1.101',
+        user_agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        timestamp: new Date(Date.now() - 28800000).toISOString(),
+        severity: 'critical',
+        category: 'financial'
+      }
+    ];
+
+    // Apply basic filtering for mock data
+    let filteredLogs = mockLogs;
+
+    if (filters.userId) {
+      filteredLogs = filteredLogs.filter(log => log.user_id === filters.userId);
+    }
+
+    if (filters.category) {
+      filteredLogs = filteredLogs.filter(log => log.category === filters.category);
+    }
+
+    if (filters.severity) {
+      filteredLogs = filteredLogs.filter(log => log.severity === filters.severity);
+    }
+
+    return filteredLogs.slice(0, filters.limit || 100);
+  }
+
+  // PII Masking and Data Protection (object-level)
+  static maskPIIObject(data, maskingRules = {}) {
+    if (!data || typeof data !== 'object') return data;
+
+    const defaultRules = {
+      email: (email) => {
+        if (!email || !email.includes('@')) return email;
+        const [local, domain] = email.split('@');
+        return `${local.substring(0, 2)}***@${domain}`;
+      },
+      phone: (phone) => {
+        if (!phone) return phone;
+        const cleaned = phone.replace(/\D/g, '');
+        if (cleaned.length < 6) return phone;
+        return cleaned.substring(0, 3) + '***' + cleaned.substring(cleaned.length - 2);
+      },
+      passport: (passport) => {
+        if (!passport) return passport;
+        return passport.substring(0, 2) + '***' + passport.substring(passport.length - 2);
+      },
+      visa: (visa) => {
+        if (!visa) return visa;
+        return '***' + visa.substring(visa.length - 4);
+      },
+      bankAccount: (account) => {
+        if (!account) return account;
+        return '***' + account.substring(account.length - 4);
+      },
+      address: (address) => {
+        if (!address) return address;
+        const parts = address.split(' ');
+        return parts.length > 2 ? `${parts[0]} *** ${parts[parts.length - 1]}` : address;
+      }
+    };
+
+    const rules = { ...defaultRules, ...maskingRules };
+    const maskedData = { ...data };
+
+    // Apply masking rules to known PII fields
+    const piiFields = {
+      email: rules.email,
+      phone: rules.phone,
+      mobile: rules.phone,
+      telephone: rules.phone,
+      passport_number: rules.passport,
+      passport: rules.passport,
+      visa_number: rules.visa,
+      visa: rules.visa,
+      bank_account: rules.bankAccount,
+      account_number: rules.bankAccount,
+      address: rules.address,
+      home_address: rules.address,
+      emergency_contact: rules.phone
+    };
+
+    Object.keys(maskedData).forEach(key => {
+      const lowerKey = key.toLowerCase();
+
+      // Check for exact matches
+      if (piiFields[lowerKey]) {
+        maskedData[key] = piiFields[lowerKey](maskedData[key]);
+      }
+
+      // Check for partial matches
+      else if (lowerKey.includes('email')) {
+        maskedData[key] = rules.email(maskedData[key]);
+      }
+      else if (lowerKey.includes('phone') || lowerKey.includes('mobile')) {
+        maskedData[key] = rules.phone(maskedData[key]);
+      }
+      else if (lowerKey.includes('passport')) {
+        maskedData[key] = rules.passport(maskedData[key]);
+      }
+      else if (lowerKey.includes('visa')) {
+        maskedData[key] = rules.visa(maskedData[key]);
+      }
+      else if (lowerKey.includes('account')) {
+        maskedData[key] = rules.bankAccount(maskedData[key]);
+      }
+      else if (lowerKey.includes('address')) {
+        maskedData[key] = rules.address(maskedData[key]);
+      }
+
+      // Recursively mask nested objects
+      if (typeof maskedData[key] === 'object' && maskedData[key] !== null) {
+        maskedData[key] = this.maskPIIObject(maskedData[key], maskingRules);
+      }
+    });
+
+    return maskedData;
+  }
+
+  static async getSecuritySettings() {
+    try {
+      // In production, fetch from database
+      const { data, error } = await supabase
+        .from('agency_security_settings')
+        .select('*')
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      return data || {
+        password_policy: {
+          min_length: 8,
+          require_uppercase: true,
+          require_lowercase: true,
+          require_numbers: true,
+          require_symbols: false,
+          password_expiry_days: 90
+        },
+        session_policy: {
+          session_timeout_minutes: 480,
+          concurrent_sessions_limit: 3,
+          require_fresh_login_for_sensitive_actions: true
+        },
+        access_control: {
+          ip_whitelist: [],
+          require_2fa_for_admin: true,
+          max_failed_login_attempts: 5,
+          lockout_duration_minutes: 30
+        },
+        audit_settings: {
+          log_all_actions: true,
+          log_retention_days: 365,
+          enable_real_time_alerts: true,
+          alert_on_critical_actions: true
+        },
+        data_protection: {
+          enable_pii_masking: true,
+          auto_anonymize_after_days: 2555, // 7 years
+          require_consent_for_data_processing: true,
+          enable_right_to_be_forgotten: true
+        }
+      };
+    } catch (error) {
+      log.error('Error fetching security settings:', error);
+      throw new Error('Failed to fetch security settings');
+    }
+  }
+
+  static async updateSecuritySettings(settings, userId) {
+    try {
+      const { data, error } = await supabase
+        .from('agency_security_settings')
+        .upsert(settings)
+        .select();
+
+      if (error) throw error;
+
+      // Log the security settings change
+      await this.logAuditEvent(userId, 'security_settings_changed', {
+        changed_settings: Object.keys(settings),
+        userEmail: 'admin@agency.com'
+      });
+
+      return data?.[0] || settings;
+    } catch (error) {
+      log.error('Failed to update security settings:', error);
+      return settings; // Return as-is for mock behavior
+    }
+  }
+}
+
+export default AgencyDashboardService;

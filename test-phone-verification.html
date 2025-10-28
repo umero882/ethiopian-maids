@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Phone Verification Function</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button.verify {
+            background: #2196F3;
+        }
+        button.verify:hover {
+            background: #0b7dda;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            display: none;
+        }
+        #result.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        #result.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 250px;
+            margin: 10px 0;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .status.success { background: #d4edda; color: #155724; }
+        .status.failed { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Phone Verification Function Test</h1>
+
+        <div class="test-section">
+            <h3>Test 1: Send Verification Code</h3>
+            <p>Sends a verification code to the specified phone number</p>
+            <input type="text" id="phoneNumber" placeholder="+971501234567" value="+971501234567">
+            <br>
+            <button onclick="testSendCode()">Send Verification Code</button>
+            <span id="sendStatus" class="status" style="display: none;"></span>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 2: Verify Code</h3>
+            <p>Verify the code received (use code from Test 1 result)</p>
+            <input type="text" id="verifyPhone" placeholder="+971501234567" value="+971501234567">
+            <input type="text" id="verifyCode" placeholder="123456" maxlength="6">
+            <br>
+            <button class="verify" onclick="testVerifyCode()">Verify Code</button>
+            <span id="verifyStatus" class="status" style="display: none;"></span>
+        </div>
+
+        <div class="test-section">
+            <h3>Test 3: Check Database Table</h3>
+            <p>Verify the phone_verifications table exists</p>
+            <button onclick="testDatabaseTable()">Check Database</button>
+            <span id="dbStatus" class="status" style="display: none;"></span>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kstoksqbhmxnrmspfywm.supabase.co';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzdG9rc3FiaG14bnJtc3BmeXdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1MTAyNTcsImV4cCI6MjA3NTA4NjI1N30.es6ozZDte5pOHA7Y1exXwdUybM-5WTxnrADKpbSGyzw';
+
+        function showResult(data, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = isError ? 'error' : 'success';
+            resultDiv.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function updateStatus(elementId, status, text) {
+            const el = document.getElementById(elementId);
+            el.style.display = 'inline-block';
+            el.className = `status ${status}`;
+            el.textContent = text;
+        }
+
+        async function testSendCode() {
+            const phone = document.getElementById('phoneNumber').value;
+
+            // Validate phone number
+            if (!phone || !phone.startsWith('+')) {
+                showResult({ error: 'Phone number must start with + (E.164 format, e.g., +971501234567)' }, true);
+                return;
+            }
+
+            updateStatus('sendStatus', 'pending', 'Sending...');
+
+            try {
+                console.log('Sending request:', { action: 'send', phone: phone });
+
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/phone-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'send',
+                        phone: phone
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Response:', response.status, data);
+
+                if (response.ok && data.success) {
+                    updateStatus('sendStatus', 'success', '✅ Success!');
+                    showResult({
+                        ...data,
+                        note: 'Copy the devCode above and use it in Test 2',
+                        httpStatus: response.status
+                    });
+
+                    // Auto-fill the code if in dev mode
+                    if (data.devCode) {
+                        document.getElementById('verifyCode').value = data.devCode;
+                        document.getElementById('verifyPhone').value = phone;
+                    }
+                } else {
+                    updateStatus('sendStatus', 'failed', `❌ Failed (${response.status})`);
+                    showResult({
+                        httpStatus: response.status,
+                        error: data.error || data,
+                        requestSent: { action: 'send', phone: phone }
+                    }, true);
+                }
+            } catch (error) {
+                updateStatus('sendStatus', 'failed', '❌ Error');
+                showResult({
+                    error: error.message,
+                    stack: error.stack
+                }, true);
+            }
+        }
+
+        async function testVerifyCode() {
+            const phone = document.getElementById('verifyPhone').value;
+            const code = document.getElementById('verifyCode').value;
+
+            if (!code || code.length !== 6) {
+                showResult({ error: 'Please enter a 6-digit code' }, true);
+                return;
+            }
+
+            if (!phone || !phone.startsWith('+')) {
+                showResult({ error: 'Phone number must start with + (E.164 format)' }, true);
+                return;
+            }
+
+            updateStatus('verifyStatus', 'pending', 'Verifying...');
+
+            try {
+                console.log('Verifying code:', { action: 'verify', phone, code });
+
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/phone-verification`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'verify',
+                        phone: phone,
+                        code: code
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Verify response:', response.status, data);
+
+                if (response.ok && data.success) {
+                    updateStatus('verifyStatus', 'success', '✅ Verified!');
+                    showResult({
+                        ...data,
+                        httpStatus: response.status,
+                        message: 'Phone number successfully verified!'
+                    });
+                } else {
+                    updateStatus('verifyStatus', 'failed', `❌ Failed (${response.status})`);
+                    showResult({
+                        httpStatus: response.status,
+                        error: data.error || data,
+                        requestSent: { action: 'verify', phone, code },
+                        hint: 'Check console (F12) for more details'
+                    }, true);
+                }
+            } catch (error) {
+                updateStatus('verifyStatus', 'failed', '❌ Error');
+                showResult({
+                    error: error.message,
+                    stack: error.stack
+                }, true);
+            }
+        }
+
+        async function testDatabaseTable() {
+            updateStatus('dbStatus', 'pending', 'Checking...');
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/phone_verifications?select=*&limit=1`, {
+                    headers: {
+                        'apikey': ANON_KEY,
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatus('dbStatus', 'success', '✅ Table exists');
+                    showResult({
+                        status: 'Table exists',
+                        rowCount: data.length,
+                        message: 'phone_verifications table is accessible'
+                    });
+                } else {
+                    updateStatus('dbStatus', 'failed', '❌ Not found');
+                    showResult({ error: 'Table not found or not accessible' }, true);
+                }
+            } catch (error) {
+                updateStatus('dbStatus', 'failed', '❌ Error');
+                showResult({ error: error.message }, true);
+            }
+        }
+
+        // Auto-run basic connectivity test on load
+        window.onload = async function() {
+            console.log('🔍 Testing Supabase connectivity...');
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+                    headers: { 'apikey': ANON_KEY }
+                });
+                console.log('✅ Supabase connection:', response.ok ? 'SUCCESS' : 'FAILED');
+            } catch (error) {
+                console.log('❌ Supabase connection error:', error.message);
+            }
+        };
+    </script>
+</body>
+</html>

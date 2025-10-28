@@ -1,0 +1,1316 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { agencyService } from '@/services/agencyService';
+import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import {
+  Search,
+  Filter,
+  Eye,
+  UserCheck,
+  UserX,
+  MoreHorizontal,
+  Users,
+  MapPin,
+  Clock,
+  Star,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Calendar,
+  Phone,
+  Mail,
+  FileText,
+  X,
+  Award,
+  TrendingUp,
+  Briefcase,
+  Heart,
+  MessageSquare,
+  Send,
+  User,
+  Target,
+  Zap,
+  ThumbsUp,
+  ThumbsDown,
+  BookOpen,
+  Globe,
+} from 'lucide-react';
+
+// Helper function to calculate match score
+const calculateMatchScore = (applicant, jobRequirements = []) => {
+  let score = 0;
+  let maxScore = 100;
+
+  // Experience match (30 points)
+  const expYears = applicant.experience_years || 0;
+  const requiredExp = parseInt(jobRequirements.find(r => r.includes('years'))?.match(/\d+/)?.[0]) || 0;
+  if (expYears >= requiredExp) {
+    score += 30;
+  } else if (expYears >= requiredExp * 0.8) {
+    score += 20;
+  } else if (expYears >= requiredExp * 0.5) {
+    score += 10;
+  }
+
+  // Skills match (25 points)
+  const applicantSkills = applicant.skills || [];
+  const requiredSkills = jobRequirements.filter(r =>
+    applicantSkills.some(skill => r.toLowerCase().includes(skill.toLowerCase()))
+  );
+  score += Math.min(25, (requiredSkills.length / Math.max(1, jobRequirements.length)) * 25);
+
+  // Language match (20 points)
+  const applicantLanguages = applicant.languages || [];
+  const hasEnglish = applicantLanguages.some(lang => lang.toLowerCase().includes('english'));
+  const hasArabic = applicantLanguages.some(lang => lang.toLowerCase().includes('arabic'));
+  if (hasEnglish) score += 15;
+  if (hasArabic) score += 5;
+
+  // Verification status (15 points)
+  if (applicant.verification_status === 'verified') {
+    score += 15;
+  } else if (applicant.verification_status === 'pending') {
+    score += 8;
+  }
+
+  // Location preference (10 points)
+  if (applicant.preferred_locations && applicant.preferred_locations.length > 0) {
+    score += 10;
+  } else {
+    score += 5;
+  }
+
+  return Math.min(maxScore, Math.max(0, Math.round(score)));
+};
+
+// Helper function to get score color
+const getScoreColor = (score) => {
+  if (score >= 80) return 'text-green-600';
+  if (score >= 60) return 'text-blue-600';
+  if (score >= 40) return 'text-yellow-600';
+  return 'text-red-600';
+};
+
+// Helper function to get score background color
+const getScoreBackground = (score) => {
+  if (score >= 80) return 'bg-green-100 border-green-300';
+  if (score >= 60) return 'bg-blue-100 border-blue-300';
+  if (score >= 40) return 'bg-yellow-100 border-yellow-300';
+  return 'bg-red-100 border-red-300';
+};
+
+// Helper function to format date
+const formatDate = (dateString) => {
+  if (!dateString) return 'Not specified';
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return 'Invalid date';
+  }
+};
+
+// Application Status Badge Component
+const ApplicationStatusBadge = ({ status }) => {
+  const safeStatus = status && typeof status === 'string' ? status : 'pending';
+  let colorClasses = '';
+
+  switch (safeStatus.toLowerCase()) {
+    case 'new':
+      colorClasses = 'bg-blue-100 text-blue-700 border-blue-300';
+      break;
+    case 'reviewed':
+      colorClasses = 'bg-purple-100 text-purple-700 border-purple-300';
+      break;
+    case 'shortlisted':
+      colorClasses = 'bg-green-100 text-green-700 border-green-300';
+      break;
+    case 'interviewed':
+      colorClasses = 'bg-indigo-100 text-indigo-700 border-indigo-300';
+      break;
+    case 'offered':
+      colorClasses = 'bg-emerald-100 text-emerald-700 border-emerald-300';
+      break;
+    case 'hired':
+      colorClasses = 'bg-green-100 text-green-700 border-green-300';
+      break;
+    case 'rejected':
+      colorClasses = 'bg-red-100 text-red-700 border-red-300';
+      break;
+    case 'withdrawn':
+      colorClasses = 'bg-gray-100 text-gray-700 border-gray-300';
+      break;
+    default:
+      colorClasses = 'bg-yellow-100 text-yellow-700 border-yellow-300';
+  }
+
+  return (
+    <Badge variant='outline' className={`capitalize ${colorClasses}`}>
+      {safeStatus}
+    </Badge>
+  );
+};
+
+const AgencyApplicantsPage = () => {
+  const navigate = useNavigate();
+  const [applicants, setApplicants] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [jobFilter, setJobFilter] = useState('all');
+  const [scoreFilter, setScoreFilter] = useState('all');
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
+
+  useEffect(() => {
+    const fetchApplicantsAndJobs = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch applications and jobs from database
+        const [applicationsResult, jobsResult] = await Promise.all([
+          agencyService.getApplications(),
+          agencyService.getAgencyJobs()
+        ]);
+
+        if (applicationsResult.error) {
+          throw applicationsResult.error;
+        }
+
+        if (jobsResult.error) {
+          throw jobsResult.error;
+        }
+
+        // Transform applications data to match UI expectations
+        const transformedApplications = (applicationsResult.data || []).map(app => ({
+          id: app.id,
+          maid_id: app.maid_id,
+          job_id: app.job_id,
+          job_title: app.job?.title || 'Unknown Position',
+          maid_name: app.maid?.full_name || 'Unknown',
+          nationality: app.maid?.nationality || 'Unknown',
+          age: app.maid?.age || 0,
+          experience_years: app.maid?.experience_years || 0,
+          skills: app.maid?.skills || [],
+          languages: app.maid?.languages || [],
+          verification_status: app.maid?.verification_status || 'pending',
+          application_status: app.application_status || 'new',
+          applied_date: app.created_at,
+          last_updated: app.updated_at,
+          preferred_locations: app.maid?.preferred_locations || [],
+          salary_expectation: app.maid?.expected_salary || app.job?.salary_min || 0,
+          availability_date: app.maid?.available_from || null,
+          jobRequirements: app.job?.required_skills || [],
+          notes: app.notes || '',
+          documents_complete: app.documents_submitted || false,
+          contact: {
+            phone: app.maid?.phone_number || 'Not available',
+            email: app.maid?.email || 'Not available'
+          },
+          avatar: null,
+          matchScore: app.match_score || calculateMatchScore({
+            experience_years: app.maid?.experience_years,
+            skills: app.maid?.skills,
+            languages: app.maid?.languages,
+            verification_status: app.maid?.verification_status,
+            preferred_locations: app.maid?.preferred_locations
+          }, app.job?.required_skills || [])
+        }));
+
+        setApplicants(transformedApplications);
+        setJobs(jobsResult.data || []);
+      } catch (error) {
+        console.error('Error fetching applicants:', error);
+        toast({
+          title: 'Error loading applicants',
+          description: error.message || 'An unexpected error occurred.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplicantsAndJobs();
+  }, []);
+
+  // Removed getMockApplicants - now using real data from database
+
+  const handleApplicantAction = async (action, applicantId, applicant = null) => {
+    try {
+      switch (action) {
+        case 'View':
+        case 'QuickView':
+          if (applicant) {
+            setSelectedApplicant(applicant);
+            setDetailDrawerOpen(true);
+          }
+          break;
+
+        case 'Shortlist':
+          const shortlistResult = await agencyService.shortlistApplication(applicantId);
+          if (shortlistResult.error) throw shortlistResult.error;
+
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'shortlisted' } : a)
+          );
+          toast({
+            title: 'Applicant shortlisted',
+            description: 'The applicant has been added to the shortlist.',
+          });
+          break;
+
+        case 'Interview':
+          const interviewDate = new Date();
+          interviewDate.setDate(interviewDate.getDate() + 3); // Schedule 3 days from now
+
+          const interviewResult = await agencyService.scheduleInterview(
+            applicantId,
+            interviewDate.toISOString(),
+            'Interview scheduled via applicants page'
+          );
+          if (interviewResult.error) throw interviewResult.error;
+
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'interviewed' } : a)
+          );
+          toast({
+            title: 'Interview scheduled',
+            description: 'The applicant has been scheduled for an interview.',
+          });
+          break;
+
+        case 'Offer':
+          const offerSalary = applicant?.salary_expectation || 1000;
+          const offerResult = await agencyService.sendOffer(applicantId, offerSalary);
+          if (offerResult.error) throw offerResult.error;
+
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'offered' } : a)
+          );
+          toast({
+            title: 'Job offer sent',
+            description: 'A job offer has been sent to the applicant.',
+          });
+          break;
+
+        case 'Hire':
+          const hireResult = await agencyService.hireApplicant(applicantId);
+          if (hireResult.error) throw hireResult.error;
+
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'hired' } : a)
+          );
+          toast({
+            title: 'Applicant hired',
+            description: 'The applicant has been successfully hired.',
+          });
+          break;
+
+        case 'Reject':
+          if (confirm('Are you sure you want to reject this applicant?')) {
+            const rejectResult = await agencyService.rejectApplication(
+              applicantId,
+              'Did not meet the position requirements'
+            );
+            if (rejectResult.error) throw rejectResult.error;
+
+            setApplicants(prev =>
+              prev.map(a => a.id === applicantId ? { ...a, application_status: 'rejected' } : a)
+            );
+            toast({
+              title: 'Applicant rejected',
+              description: 'The applicant has been rejected.',
+            });
+          }
+          break;
+
+        case 'Contact':
+          toast({
+            title: 'Contact applicant',
+            description: 'Opening contact interface...',
+          });
+          break;
+
+        default:
+          toast({
+            title: `${action} Applicant (ID: ${applicantId})`,
+            description: 'This action is under development.',
+          });
+      }
+    } catch (error) {
+      console.error(`Error during applicant action ${action}:`, error);
+      toast({
+        title: 'Error processing action',
+        description: error.message || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Enhanced filter and search logic
+  const filteredApplicants = applicants.filter((applicant) => {
+    if (!applicant
+      {
+        id: 1,
+        maid_id: 101,
+        job_id: 1,
+        job_title: 'Full-time Live-in Housekeeper',
+        maid_name: 'Almaz Tadesse',
+        nationality: 'Ethiopian',
+        age: 28,
+        experience_years: 4,
+        skills: ['Housekeeping', 'Childcare', 'Cooking'],
+        languages: ['English', 'Amharic', 'Arabic'],
+        verification_status: 'verified',
+        application_status: 'shortlisted',
+        applied_date: '2024-01-20',
+        last_updated: '2024-01-22',
+        preferred_locations: ['Saudi Arabia', 'UAE'],
+        salary_expectation: 1300,
+        availability_date: '2024-02-15',
+        jobRequirements: ['2+ years experience', 'English speaking', 'Childcare experience'],
+        notes: 'Excellent references from previous employer. Very experienced with children.',
+        documents_complete: true,
+        contact: {
+          phone: '+251-9**-***-***',
+          email: 'a****@email.com'
+        },
+        avatar: null
+      },
+      {
+        id: 2,
+        maid_id: 102,
+        job_id: 2,
+        job_title: 'Part-time Elderly Care Assistant',
+        maid_name: 'Fatima Al-Zahra',
+        nationality: 'Ethiopian',
+        age: 35,
+        experience_years: 6,
+        skills: ['Elderly Care', 'Medical Care', 'Cooking'],
+        languages: ['Arabic', 'English', 'Amharic'],
+        verification_status: 'verified',
+        application_status: 'interviewed',
+        applied_date: '2024-01-18',
+        last_updated: '2024-01-25',
+        preferred_locations: ['Dubai', 'Abu Dhabi'],
+        salary_expectation: 950,
+        availability_date: '2024-02-01',
+        jobRequirements: ['Medical care experience', 'Arabic speaking preferred', '3+ years experience'],
+        notes: 'Specialized in elderly care with medical training. Very patient and caring.',
+        documents_complete: true,
+        contact: {
+          phone: '+251-9**-***-***',
+          email: 'f****@email.com'
+        },
+        avatar: null
+      },
+      {
+        id: 3,
+        maid_id: 103,
+        job_id: 3,
+        job_title: 'Domestic Helper with Cooking Skills',
+        maid_name: 'Meron Bekele',
+        nationality: 'Ethiopian',
+        age: 24,
+        experience_years: 2,
+        skills: ['Cooking', 'Housekeeping', 'Laundry'],
+        languages: ['English', 'Amharic'],
+        verification_status: 'pending',
+        application_status: 'new',
+        applied_date: '2024-01-25',
+        last_updated: '2024-01-25',
+        preferred_locations: ['Kuwait', 'Qatar'],
+        salary_expectation: 1100,
+        availability_date: '2024-03-01',
+        jobRequirements: ['Excellent cooking skills', 'Housekeeping experience', 'English communication'],
+        notes: 'Young and enthusiastic. Excellent cooking skills with traditional and modern cuisine.',
+        documents_complete: false,
+        contact: {
+          phone: '+251-9**-***-***',
+          email: 'm****@email.com'
+        },
+        avatar: null
+      },
+      {
+        id: 4,
+        maid_id: 104,
+        job_id: 1,
+        job_title: 'Full-time Live-in Housekeeper',
+        maid_name: 'Sara Mohammed',
+        nationality: 'Ethiopian',
+        age: 31,
+        experience_years: 5,
+        skills: ['Housekeeping', 'Childcare', 'Pet Care'],
+        languages: ['English', 'Arabic', 'Amharic'],
+        verification_status: 'verified',
+        application_status: 'offered',
+        applied_date: '2024-01-15',
+        last_updated: '2024-01-28',
+        preferred_locations: ['Riyadh', 'Jeddah'],
+        salary_expectation: 1450,
+        availability_date: '2024-02-10',
+        jobRequirements: ['2+ years experience', 'English speaking', 'Childcare experience'],
+        notes: 'Outstanding candidate with excellent references. Pet-friendly household experience.',
+        documents_complete: true,
+        contact: {
+          phone: '+251-9**-***-***',
+          email: 's****@email.com'
+        },
+        avatar: null
+      },
+      {
+        id: 5,
+        maid_id: 105,
+        job_id: 2,
+        job_title: 'Part-time Elderly Care Assistant',
+        maid_name: 'Hanan Ibrahim',
+        nationality: 'Ethiopian',
+        age: 29,
+        experience_years: 3,
+        skills: ['Elderly Care', 'Housekeeping'],
+        languages: ['Arabic', 'Amharic'],
+        verification_status: 'pending',
+        application_status: 'rejected',
+        applied_date: '2024-01-12',
+        last_updated: '2024-01-20',
+        preferred_locations: ['Dubai'],
+        salary_expectation: 800,
+        availability_date: '2024-02-20',
+        jobRequirements: ['Medical care experience', 'Arabic speaking preferred', '3+ years experience'],
+        notes: 'Limited medical care experience. Excellent housekeeping skills.',
+        documents_complete: false,
+        contact: {
+          phone: '+251-9**-***-***',
+          email: 'h****@email.com'
+        },
+        avatar: null
+      }
+    ];
+  };
+
+  // Mock data generator for jobs (simplified)
+  const getMockJobs = async (agencyId) => {
+    return [
+      { id: 1, title: 'Full-time Live-in Housekeeper' },
+      { id: 2, title: 'Part-time Elderly Care Assistant' },
+      { id: 3, title: 'Domestic Helper with Cooking Skills' }
+    ];
+  };
+
+  const handleApplicantAction = async (action, applicantId, applicant = null) => {
+    try {
+      switch (action) {
+        case 'View':
+        case 'QuickView':
+          if (applicant) {
+            setSelectedApplicant(applicant);
+            setDetailDrawerOpen(true);
+          }
+          break;
+
+        case 'Shortlist':
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'shortlisted' } : a)
+          );
+          toast({
+            title: 'Applicant shortlisted',
+            description: 'The applicant has been added to the shortlist.',
+          });
+          break;
+
+        case 'Interview':
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'interviewed' } : a)
+          );
+          toast({
+            title: 'Interview scheduled',
+            description: 'The applicant has been scheduled for an interview.',
+          });
+          break;
+
+        case 'Offer':
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'offered' } : a)
+          );
+          toast({
+            title: 'Job offer sent',
+            description: 'A job offer has been sent to the applicant.',
+          });
+          break;
+
+        case 'Hire':
+          setApplicants(prev =>
+            prev.map(a => a.id === applicantId ? { ...a, application_status: 'hired' } : a)
+          );
+          toast({
+            title: 'Applicant hired',
+            description: 'The applicant has been successfully hired.',
+          });
+          break;
+
+        case 'Reject':
+          if (confirm('Are you sure you want to reject this applicant?')) {
+            setApplicants(prev =>
+              prev.map(a => a.id === applicantId ? { ...a, application_status: 'rejected' } : a)
+            );
+            toast({
+              title: 'Applicant rejected',
+              description: 'The applicant has been rejected.',
+            });
+          }
+          break;
+
+        case 'Contact':
+          toast({
+            title: 'Contact applicant',
+            description: 'Opening contact interface...',
+          });
+          break;
+
+        default:
+          toast({
+            title: `${action} Applicant (ID: ${applicantId})`,
+            description: 'This action is under development.',
+          });
+      }
+    } catch (error) {
+      console.error(`Error during applicant action ${action}:`, error);
+      toast({
+        title: 'Error processing action',
+        description: error.message || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Enhanced filter and search logic
+  const filteredApplicants = applicants.filter((applicant) => {
+    if (!applicant) return false;
+
+    // Search filtering
+    const safeSearchTerm = searchTerm && typeof searchTerm === 'string'
+      ? searchTerm.toLowerCase() : '';
+    const matchesSearch = safeSearchTerm === '' ||
+      (applicant.maid_name && applicant.maid_name.toLowerCase().includes(safeSearchTerm)) ||
+      (applicant.job_title && applicant.job_title.toLowerCase().includes(safeSearchTerm)) ||
+      (applicant.nationality && applicant.nationality.toLowerCase().includes(safeSearchTerm)) ||
+      (applicant.skills && applicant.skills.some(skill =>
+        skill.toLowerCase().includes(safeSearchTerm)
+      ));
+
+    // Status filtering
+    const matchesStatus = statusFilter === 'all' ||
+      (applicant.application_status && applicant.application_status.toLowerCase() === statusFilter.toLowerCase());
+
+    // Job filtering
+    const matchesJob = jobFilter === 'all' ||
+      (applicant.job_id && applicant.job_id.toString() === jobFilter);
+
+    // Score filtering
+    const matchesScore = (() => {
+      if (scoreFilter === 'all') return true;
+      const score = applicant.matchScore || 0;
+      switch (scoreFilter) {
+        case 'excellent': return score >= 80;
+        case 'good': return score >= 60 && score < 80;
+        case 'fair': return score >= 40 && score < 60;
+        case 'poor': return score < 40;
+        default: return true;
+      }
+    })();
+
+    // Tab filtering
+    const matchesTab = (() => {
+      switch (activeTab) {
+        case 'new': return applicant.application_status === 'new';
+        case 'shortlisted': return applicant.application_status === 'shortlisted';
+        case 'interviewed': return applicant.application_status === 'interviewed';
+        case 'offered': return applicant.application_status === 'offered';
+        case 'hired': return applicant.application_status === 'hired';
+        case 'all':
+        default: return true;
+      }
+    })();
+
+    return matchesSearch && matchesStatus && matchesJob && matchesScore && matchesTab;
+  });
+
+  // Get counts for tabs
+  const getTabCounts = () => {
+    return {
+      all: applicants.length,
+      new: applicants.filter(a => a.application_status === 'new').length,
+      shortlisted: applicants.filter(a => a.application_status === 'shortlisted').length,
+      interviewed: applicants.filter(a => a.application_status === 'interviewed').length,
+      offered: applicants.filter(a => a.application_status === 'offered').length,
+      hired: applicants.filter(a => a.application_status === 'hired').length,
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className='flex items-center justify-center h-full p-10'>
+        <div className='text-center space-y-4'>
+          <div className='animate-spin rounded-full h-10 w-10 border-b-2 border-purple-700 mx-auto'></div>
+          <p className='text-gray-600'>Loading applicants and matches...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const tabCounts = getTabCounts();
+
+  return (
+    <div className='space-y-6'>
+      <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
+        <div>
+          <h1 className='text-3xl font-bold text-gray-800'>Applicants & Matches</h1>
+          <p className='text-gray-600 mt-1'>Manage applications and find the perfect matches</p>
+        </div>
+        <div className='flex gap-2'>
+          <Button
+            onClick={() => toast({ title: 'Auto-match', description: 'Running smart matching algorithm...' })}
+            variant='outline'
+            size='lg'
+            className='shadow-sm'
+          >
+            <Target className='mr-2 h-4 w-4' />
+            Auto-Match
+          </Button>
+          <Button
+            onClick={() => toast({ title: 'Batch actions', description: 'Opening batch processing...' })}
+            size='lg'
+            className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all'
+          >
+            <Zap className='mr-2 h-4 w-4' />
+            Batch Actions
+          </Button>
+        </div>
+      </div>
+
+      <Card className='shadow-lg border-0'>
+        <CardHeader className='pb-2'>
+          <CardTitle className='text-xl font-semibold text-gray-800'>
+            Application Queue
+          </CardTitle>
+          <CardDescription>Review applications and manage your candidate pipeline.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Tabs for application stages */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className='mb-6'>
+            <TabsList className='grid w-full grid-cols-6'>
+              <TabsTrigger value='all' className='text-xs'>
+                All ({tabCounts.all})
+              </TabsTrigger>
+              <TabsTrigger value='new' className='text-xs'>
+                New ({tabCounts.new})
+              </TabsTrigger>
+              <TabsTrigger value='shortlisted' className='text-xs'>
+                Shortlisted ({tabCounts.shortlisted})
+              </TabsTrigger>
+              <TabsTrigger value='interviewed' className='text-xs'>
+                Interviewed ({tabCounts.interviewed})
+              </TabsTrigger>
+              <TabsTrigger value='offered' className='text-xs'>
+                Offered ({tabCounts.offered})
+              </TabsTrigger>
+              <TabsTrigger value='hired' className='text-xs'>
+                Hired ({tabCounts.hired})
+              </TabsTrigger>
+            </TabsList>
+
+          {/* Enhanced Search and Filters */}
+          <div className='space-y-4 mb-6'>
+            <div className='flex flex-col lg:flex-row gap-4'>
+              <div className='relative flex-1'>
+                <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
+                <Input
+                  placeholder='Search by name, job, nationality, or skills...'
+                  className='pl-9'
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className='flex flex-wrap gap-2'>
+                {/* Status Filter */}
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className='w-40'>
+                    <SelectValue placeholder='Status' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>All Status</SelectItem>
+                    <SelectItem value='new'>New</SelectItem>
+                    <SelectItem value='reviewed'>Reviewed</SelectItem>
+                    <SelectItem value='shortlisted'>Shortlisted</SelectItem>
+                    <SelectItem value='interviewed'>Interviewed</SelectItem>
+                    <SelectItem value='offered'>Offered</SelectItem>
+                    <SelectItem value='hired'>Hired</SelectItem>
+                    <SelectItem value='rejected'>Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Job Filter */}
+                <Select value={jobFilter} onValueChange={setJobFilter}>
+                  <SelectTrigger className='w-48'>
+                    <SelectValue placeholder='Job Position' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>All Jobs</SelectItem>
+                    {jobs.map((job) => (
+                      <SelectItem key={job.id} value={job.id.toString()}>
+                        {job.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Match Score Filter */}
+                <Select value={scoreFilter} onValueChange={setScoreFilter}>
+                  <SelectTrigger className='w-40'>
+                    <SelectValue placeholder='Match Score' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>All Scores</SelectItem>
+                    <SelectItem value='excellent'>Excellent (80%+)</SelectItem>
+                    <SelectItem value='good'>Good (60-79%)</SelectItem>
+                    <SelectItem value='fair'>Fair (40-59%)</SelectItem>
+                    <SelectItem value='poor'>Poor (&lt;40%)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {/* Clear Filters */}
+                {(searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || scoreFilter !== 'all') && (
+                  <Button
+                    variant='ghost'
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                      setJobFilter('all');
+                      setScoreFilter('all');
+                    }}
+                    className='text-gray-500 hover:text-gray-700'
+                  >
+                    <X className='mr-2 h-4 w-4' />
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <TabsContent value={activeTab}>
+            {filteredApplicants.length === 0 ? (
+              <div className='text-center py-12'>
+                <Users className='mx-auto h-12 w-12 text-gray-300 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-900 mb-2'>No applicants found</h3>
+                <p className='text-gray-500 mb-4'>
+                  {applicants.length === 0
+                    ? 'No applications have been received yet.'
+                    : 'No applicants match your current filters.'}
+                </p>
+                {(searchTerm || statusFilter !== 'all' || jobFilter !== 'all' || scoreFilter !== 'all') && (
+                  <Button
+                    variant='outline'
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                      setJobFilter('all');
+                      setScoreFilter('all');
+                    }}
+                    className='mt-2'
+                  >
+                    <X className='mr-2 h-4 w-4' />
+                    Clear all filters
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className='overflow-x-auto'>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Candidate</TableHead>
+                      <TableHead className='hidden sm:table-cell'>Job Position</TableHead>
+                      <TableHead>Match Score</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className='hidden md:table-cell'>Applied</TableHead>
+                      <TableHead className='hidden lg:table-cell'>Experience</TableHead>
+                      <TableHead className='text-right'>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredApplicants.map((applicant) => (
+                      <TableRow
+                        key={applicant.id}
+                        className='hover:bg-gray-50 transition-colors cursor-pointer'
+                        onClick={() => handleApplicantAction('QuickView', applicant.id, applicant)}
+                      >
+                        <TableCell className='font-medium text-gray-700'>
+                          <div className='flex items-center gap-3'>
+                            <Avatar className='w-12 h-12 border-2 border-gray-100'>
+                              {applicant.avatar ? (
+                                <AvatarImage
+                                  src={applicant.avatar}
+                                  alt={applicant.maid_name}
+                                  className='object-cover'
+                                />
+                              ) : (
+                                <div className='w-full h-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center'>
+                                  <User className='w-6 h-6 text-purple-600' />
+                                </div>
+                              )}
+                              <AvatarFallback className='bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700 font-semibold'>
+                                {applicant.maid_name ? applicant.maid_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'A'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className='font-semibold text-gray-900 hover:text-blue-600'>
+                                {applicant.maid_name}
+                              </div>
+                              <div className='text-sm text-gray-500 flex items-center gap-2'>
+                                <MapPin className='h-3 w-3' />
+                                {applicant.nationality}, {applicant.age} years
+                                {applicant.verification_status === 'verified' && (
+                                  <CheckCircle className='h-3 w-3 text-green-500' />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className='hidden sm:table-cell text-gray-600'>
+                          <div className='flex items-center gap-1'>
+                            <Briefcase className='h-3 w-3' />
+                            <span className='max-w-48 truncate'>{applicant.job_title}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className='flex items-center gap-2'>
+                            <div className={`text-sm font-semibold ${getScoreColor(applicant.matchScore)}`}>
+                              {applicant.matchScore}%
+                            </div>
+                            <Progress
+                              value={applicant.matchScore}
+                              className='w-16 h-2'
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <ApplicationStatusBadge status={applicant.application_status} />
+                        </TableCell>
+                        <TableCell className='hidden md:table-cell text-gray-600'>
+                          <div className='flex items-center gap-1'>
+                            <Calendar className='h-3 w-3' />
+                            {formatDate(applicant.applied_date)}
+                          </div>
+                        </TableCell>
+                        <TableCell className='hidden lg:table-cell text-gray-600'>
+                          <div className='flex items-center gap-1'>
+                            <Award className='h-3 w-3' />
+                            {applicant.experience_years} years
+                          </div>
+                        </TableCell>
+                        <TableCell className='text-right'>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant='ghost' className='h-8 w-8 p-0'>
+                                <span className='sr-only'>Open menu</span>
+                                <MoreHorizontal className='h-4 w-4' />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align='end'>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApplicantAction('QuickView', applicant.id, applicant);
+                                }}
+                              >
+                                <Eye className='mr-2 h-4 w-4' />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApplicantAction('Contact', applicant.id);
+                                }}
+                              >
+                                <MessageSquare className='mr-2 h-4 w-4' />
+                                Contact
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {applicant.application_status === 'new' && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApplicantAction('Shortlist', applicant.id);
+                                  }}
+                                >
+                                  <UserCheck className='mr-2 h-4 w-4' />
+                                  Shortlist
+                                </DropdownMenuItem>
+                              )}
+                              {applicant.application_status === 'shortlisted' && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApplicantAction('Interview', applicant.id);
+                                  }}
+                                >
+                                  <Calendar className='mr-2 h-4 w-4' />
+                                  Schedule Interview
+                                </DropdownMenuItem>
+                              )}
+                              {applicant.application_status === 'interviewed' && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApplicantAction('Offer', applicant.id);
+                                  }}
+                                >
+                                  <Send className='mr-2 h-4 w-4' />
+                                  Send Offer
+                                </DropdownMenuItem>
+                              )}
+                              {applicant.application_status === 'offered' && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApplicantAction('Hire', applicant.id);
+                                  }}
+                                >
+                                  <ThumbsUp className='mr-2 h-4 w-4' />
+                                  Confirm Hire
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApplicantAction('Reject', applicant.id);
+                                }}
+                                className='text-red-600 focus:text-red-600 focus:bg-red-50'
+                              >
+                                <UserX className='mr-2 h-4 w-4' />
+                                Reject
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+
+      {/* Applicant Detail Drawer */}
+      <Sheet open={detailDrawerOpen} onOpenChange={setDetailDrawerOpen}>
+        <SheetContent className='w-full sm:max-w-2xl overflow-y-auto'>
+          <SheetHeader>
+            <SheetTitle className='flex items-center gap-2'>
+              <User className='h-5 w-5' />
+              {selectedApplicant ? selectedApplicant.maid_name : 'Applicant Details'}
+            </SheetTitle>
+            <SheetDescription>
+              Review candidate profile and application details
+            </SheetDescription>
+          </SheetHeader>
+
+          {selectedApplicant && (
+            <div className='mt-6 space-y-6'>
+              {/* Candidate Header */}
+              <div>
+                <div className='flex items-start justify-between mb-4'>
+                  <div className='flex items-center gap-4'>
+                    <Avatar className='w-16 h-16 border-4 border-gray-100'>
+                      {selectedApplicant.avatar ? (
+                        <AvatarImage
+                          src={selectedApplicant.avatar}
+                          alt={selectedApplicant.maid_name}
+                          className='object-cover'
+                        />
+                      ) : (
+                        <div className='w-full h-full bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center'>
+                          <User className='w-8 h-8 text-purple-600' />
+                        </div>
+                      )}
+                      <AvatarFallback className='bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700 font-semibold'>
+                        {selectedApplicant.maid_name ? selectedApplicant.maid_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'A'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className='text-xl font-semibold text-gray-900 mb-1'>
+                        {selectedApplicant.maid_name}
+                      </h2>
+                      <div className='text-sm text-gray-600 space-y-1'>
+                        <div className='flex items-center gap-1'>
+                          <MapPin className='h-3 w-3' />
+                          {selectedApplicant.nationality}, {selectedApplicant.age} years old
+                        </div>
+                        <div className='flex items-center gap-1'>
+                          <Calendar className='h-3 w-3' />
+                          Applied {formatDate(selectedApplicant.applied_date)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='flex flex-col gap-2 items-end'>
+                    <ApplicationStatusBadge status={selectedApplicant.application_status} />
+                    {selectedApplicant.verification_status === 'verified' && (
+                      <Badge variant='outline' className='bg-green-100 text-green-700 border-green-300'>
+                        <CheckCircle className='mr-1 h-3 w-3' />
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Match Score Section */}
+              <div>
+                <label className='text-sm font-medium text-gray-500 mb-3 block'>
+                  Match Score Analysis
+                </label>
+                <div className={`p-4 rounded-lg border-2 ${getScoreBackground(selectedApplicant.matchScore)}`}>
+                  <div className='flex items-center justify-between mb-3'>
+                    <div className='flex items-center gap-2'>
+                      <Target className='h-5 w-5' />
+                      <span className='font-semibold'>Overall Match</span>
+                    </div>
+                    <div className={`text-2xl font-bold ${getScoreColor(selectedApplicant.matchScore)}`}>
+                      {selectedApplicant.matchScore}%
+                    </div>
+                  </div>
+                  <Progress value={selectedApplicant.matchScore} className='h-3 mb-2' />
+                  <div className='text-sm text-gray-600'>
+                    {selectedApplicant.matchScore >= 80 ? 'Excellent match for this position' :
+                     selectedApplicant.matchScore >= 60 ? 'Good match with minor gaps' :
+                     selectedApplicant.matchScore >= 40 ? 'Fair match, requires consideration' :
+                     'Poor match, significant gaps identified'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Job Application Details */}
+              <div>
+                <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                  Applied Position
+                </label>
+                <div className='bg-gray-50 rounded-lg p-4'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <Briefcase className='h-4 w-4 text-gray-600' />
+                    <span className='font-medium'>{selectedApplicant.job_title}</span>
+                  </div>
+                  <div className='text-sm text-gray-600'>
+                    Salary Expectation: ${selectedApplicant.salary_expectation}/month
+                  </div>
+                  <div className='text-sm text-gray-600'>
+                    Available from: {formatDate(selectedApplicant.availability_date)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Skills and Experience */}
+              <div>
+                <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                  Skills & Experience
+                </label>
+                <div className='space-y-3'>
+                  <div className='flex items-center gap-2 text-sm'>
+                    <Award className='h-4 w-4 text-gray-400' />
+                    <span>{selectedApplicant.experience_years} years of experience</span>
+                  </div>
+                  {selectedApplicant.skills && selectedApplicant.skills.length > 0 && (
+                    <div>
+                      <div className='text-sm text-gray-600 mb-1'>Skills:</div>
+                      <div className='flex flex-wrap gap-1'>
+                        {selectedApplicant.skills.map((skill, idx) => (
+                          <Badge key={idx} variant='outline' className='text-xs'>
+                            {skill}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {selectedApplicant.languages && selectedApplicant.languages.length > 0 && (
+                    <div>
+                      <div className='text-sm text-gray-600 mb-1'>Languages:</div>
+                      <div className='flex flex-wrap gap-1'>
+                        {selectedApplicant.languages.map((language, idx) => (
+                          <Badge key={idx} variant='secondary' className='text-xs'>
+                            <Globe className='mr-1 h-3 w-3' />
+                            {language}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Preferred Locations */}
+              {selectedApplicant.preferred_locations && selectedApplicant.preferred_locations.length > 0 && (
+                <div>
+                  <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                    Preferred Locations
+                  </label>
+                  <div className='flex flex-wrap gap-1'>
+                    {selectedApplicant.preferred_locations.map((location, idx) => (
+                      <Badge key={idx} variant='outline' className='text-xs'>
+                        <MapPin className='mr-1 h-3 w-3' />
+                        {location}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Documents Status */}
+              <div>
+                <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                  Documents
+                </label>
+                <div className='flex items-center gap-2'>
+                  {selectedApplicant.documents_complete ? (
+                    <>
+                      <CheckCircle className='h-4 w-4 text-green-500' />
+                      <span className='text-sm text-green-700'>All documents submitted</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className='h-4 w-4 text-yellow-500' />
+                      <span className='text-sm text-yellow-700'>Documents incomplete</span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Information (Masked) */}
+              <div>
+                <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                  Contact Information (Masked)
+                </label>
+                <div className='space-y-2 text-sm bg-gray-50 p-3 rounded-lg'>
+                  <div className='flex items-center gap-2'>
+                    <Phone className='h-4 w-4 text-gray-400' />
+                    <span>{selectedApplicant.contact?.phone || 'Not provided'}</span>
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <Mail className='h-4 w-4 text-gray-400' />
+                    <span>{selectedApplicant.contact?.email || 'Not provided'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              {selectedApplicant.notes && (
+                <div>
+                  <label className='text-sm font-medium text-gray-500 mb-2 block'>
+                    Notes
+                  </label>
+                  <div className='text-sm text-gray-700 bg-blue-50 p-3 rounded-lg'>
+                    {selectedApplicant.notes}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className='flex gap-2 pt-4'>
+                <Button
+                  onClick={() => handleApplicantAction('Contact', selectedApplicant.id)}
+                  className='flex-1'
+                >
+                  <MessageSquare className='mr-2 h-4 w-4' />
+                  Contact
+                </Button>
+                {selectedApplicant.application_status === 'new' && (
+                  <Button
+                    variant='outline'
+                    onClick={() => handleApplicantAction('Shortlist', selectedApplicant.id)}
+                    className='flex-1'
+                  >
+                    <UserCheck className='mr-2 h-4 w-4' />
+                    Shortlist
+                  </Button>
+                )}
+                {selectedApplicant.application_status === 'shortlisted' && (
+                  <Button
+                    variant='outline'
+                    onClick={() => handleApplicantAction('Interview', selectedApplicant.id)}
+                    className='flex-1'
+                  >
+                    <Calendar className='mr-2 h-4 w-4' />
+                    Interview
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+};
+
+export default AgencyApplicantsPage;

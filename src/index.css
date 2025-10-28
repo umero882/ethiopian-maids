@@ -1,0 +1,224 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Updated colors: Primary #6e2be4, Secondary #caf2c9 */
+
+:root {
+  --background: 220 15% 97%;
+  --foreground: 220 15% 8%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 15% 8%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 15% 8%;
+  --primary: 267 83% 57%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 115 44% 87%;
+  --secondary-foreground: 220 15% 8%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 220 9% 46%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 220 9% 46%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 267 83% 57%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 220 15% 3%;
+  --foreground: 220 15% 98%;
+  --card: 220 15% 8%;
+  --card-foreground: 220 15% 98%;
+  --popover: 220 15% 8%;
+  --popover-foreground: 220 15% 98%;
+  --primary: 267 83% 57%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 115 44% 87%;
+  --secondary-foreground: 220 15% 8%;
+  --muted: 220 15% 12%;
+  --muted-foreground: 220 15% 65%;
+  --accent: 220 15% 12%;
+  --accent-foreground: 220 15% 70%;
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 220 15% 18%;
+  --input: 220 15% 18%;
+  --ring: 267 83% 57%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.middle-east-pattern {
+  background-image:
+    radial-gradient(circle at 25% 25%, #fbbf24 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, #f59e0b 0%, transparent 50%);
+}
+
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+}
+
+.feature-card {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Floating announcement banner utilities */
+.floating-banner {
+  position: fixed;
+  top: 5rem; /* Below navbar (h-20 = 5rem) */
+  left: 0;
+  right: 0;
+  z-index: 30;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Hero section adjustment for floating banner */
+.hero-with-banner {
+  padding-top: 0; /* Remove top padding since banner is floating */
+}
+
+/* Ensure proper layering */
+.banner-overlay {
+  position: relative;
+  z-index: 30;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+}
+
+/* Floating support widget utilities */
+.support-widget {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 50;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.support-widget-button {
+  background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.support-widget-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -5px rgba(124, 58, 237, 0.5);
+}
+
+.support-chat-bubble {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.support-message-user {
+  background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.support-message-system {
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  color: #374151;
+  border-radius: 18px 18px 18px 4px;
+}
+
+.support-typing-indicator {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .support-widget {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+
+  .support-widget-button {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+}

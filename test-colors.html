@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': 'hsl(267, 83%, 57%)',
+                        'secondary': 'hsl(218, 69%, 35%)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="p-8 space-y-4">
+    <h1 class="text-2xl font-bold">Color Test</h1>
+
+    <div class="space-y-4">
+        <div>
+            <h2 class="font-semibold mb-2">Expected Colors:</h2>
+            <div class="flex gap-4">
+                <div class="w-32 h-16 rounded-md flex items-center justify-center text-white text-sm" style="background-color: #6e2be4;">
+                    Primary<br>#6e2be4
+                </div>
+                <div class="w-32 h-16 rounded-md flex items-center justify-center text-white text-sm" style="background-color: #1c409d;">
+                    Secondary<br>#1c409d
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="font-semibold mb-2">CSS Variable Colors:</h2>
+            <div class="flex gap-4">
+                <div class="w-32 h-16 bg-primary rounded-md flex items-center justify-center text-white text-sm">
+                    bg-primary
+                </div>
+                <div class="w-32 h-16 bg-secondary rounded-md flex items-center justify-center text-white text-sm">
+                    bg-secondary
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="font-semibold mb-2">HSL Direct:</h2>
+            <div class="flex gap-4">
+                <div class="w-32 h-16 rounded-md flex items-center justify-center text-white text-sm" style="background-color: hsl(267, 83%, 57%);">
+                    HSL Primary
+                </div>
+                <div class="w-32 h-16 rounded-md flex items-center justify-center text-white text-sm" style="background-color: hsl(218, 69%, 35%);">
+                    HSL Secondary
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

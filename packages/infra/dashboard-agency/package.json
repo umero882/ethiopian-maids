@@ -1,0 +1,23 @@
+{
+  "name": "@ethio-maids/infra-dashboard-agency",
+  "version": "0.1.0",
+  "description": "Infrastructure adapters for agency dashboard - Supabase implementations",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [
+    "infrastructure",
+    "adapters",
+    "supabase",
+    "clean-architecture"
+  ],
+  "dependencies": {
+    "@ethio-maids/app-dashboard-agency": "workspace:*",
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@ethio-maids/utils",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ethiopian Maids Utils - Pure helper functions shared across layers",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./env": "./dist/env.js",
+    "./validation": "./dist/validation.js",
+    "./dates": "./dist/dates.js",
+    "./currency": "./dist/currency.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "validator": "^13.15.15",
+    "date-fns": "^2.30.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

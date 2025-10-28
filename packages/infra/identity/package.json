@@ -1,0 +1,17 @@
+{
+  "name": "@ethio-maids/infra-identity",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ethiopian Maids Infrastructure - Identity adapters for Supabase",
+  "main": "./index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@ethio-maids/app-identity": "workspace:*",
+    "@ethio-maids/domain-identity": "workspace:*"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+⚡ QUICK FIX - USE THIS FILE ⚡
+
+File to use: RUN_SAFE_MIGRATIONS_FIXED.sql
+
+The previous file (RUN_SAFE_MIGRATIONS.sql) had syntax errors with RAISE NOTICE.
+This has been FIXED in the new file.
+
+STEPS:
+1. Open: RUN_SAFE_MIGRATIONS_FIXED.sql
+2. Copy ALL contents (Ctrl+A, Ctrl+C)
+3. Paste in Supabase SQL Editor
+4. Click "Run"
+5. ✅ Done!
+
+This will safely apply ALL migrations 037-042 without errors.
+
+Expected output:
+✓ All migrations completed!
+✅ SUCCESS: All 5 tables are ready!

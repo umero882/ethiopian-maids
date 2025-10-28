@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Supabase Connection</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .success {
+        color: #28a745;
+      }
+      .error {
+        color: #dc3545;
+      }
+      .warning {
+        color: #ffc107;
+      }
+      .info {
+        color: #17a2b8;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      input {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔌 Test Supabase Connection</h1>
+      <p>
+        Use this tool to test your Supabase connection after updating
+        credentials.
+      </p>
+
+      <div class="test-section">
+        <h2>📋 Enter Your Credentials</h2>
+        <p>Enter your Supabase credentials to test the connection:</p>
+
+        <label>Project URL:</label>
+        <input
+          type="text"
+          id="supabaseUrl"
+          placeholder="https://your-project-id.supabase.co"
+        />
+
+        <label>Anon Key:</label>
+        <input
+          type="text"
+          id="supabaseKey"
+          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        />
+
+        <button onclick="testConnection()">🚀 Test Connection</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+      </div>
+
+      <div id="results" class="test-section" style="display: none">
+        <h2>📊 Test Results</h2>
+        <div id="output"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>✅ What to Check</h2>
+        <ul>
+          <li>
+            <strong>Basic Connectivity:</strong> Can we reach your Supabase
+            project?
+          </li>
+          <li><strong>API Access:</strong> Are the credentials valid?</li>
+          <li><strong>Database Access:</strong> Can we query the database?</li>
+          <li><strong>Authentication:</strong> Is auth service working?</li>
+        </ul>
+      </div>
+
+      <div class="test-section">
+        <h2>🔧 Troubleshooting</h2>
+        <h3>Common Issues:</h3>
+        <ul>
+          <li>
+            <strong>Project Paused:</strong> Check Supabase dashboard for paused
+            projects
+          </li>
+          <li>
+            <strong>Invalid URL:</strong> Make sure URL starts with https:// and
+            ends with .supabase.co
+          </li>
+          <li>
+            <strong>Wrong Key:</strong> Verify you copied the complete anon key
+          </li>
+          <li>
+            <strong>CORS Issues:</strong> Make sure your domain is allowed in
+            Supabase settings
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      function log(message, type = 'info') {
+        const output = document.getElementById('output');
+        const div = document.createElement('div');
+        div.className = type;
+        div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+        output.appendChild(div);
+      }
+
+      function showResults() {
+        document.getElementById('results').style.display = 'block';
+      }
+
+      function clearResults() {
+        document.getElementById('output').innerHTML = '';
+        document.getElementById('results').style.display = 'none';
+      }
+
+      async function testConnection() {
+        const url = document.getElementById('supabaseUrl').value.trim();
+        const key = document.getElementById('supabaseKey').value.trim();
+
+        if (!url || !key) {
+          alert('Please enter both URL and API key');
+          return;
+        }
+
+        showResults();
+        clearResults();
+        showResults();
+
+        log('🔍 Starting Supabase connection test...', 'info');
+        log(`📡 Testing URL: ${url}`, 'info');
+        log(`🔑 Using key: ${key.substring(0, 20)}...`, 'info');
+
+        // Test 1: Basic connectivity
+        log('🌐 Test 1: Basic Connectivity', 'info');
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            mode: 'no-cors',
+          });
+          log('✅ Basic connectivity: SUCCESS', 'success');
+        } catch (error) {
+          log(`❌ Basic connectivity: FAILED - ${error.message}`, 'error');
+          log(
+            '💡 This suggests the URL is incorrect or the project is down',
+            'warning'
+          );
+          return;
+        }
+
+        // Test 2: REST API endpoint
+        log('🔌 Test 2: REST API Endpoint', 'info');
+        try {
+          const response = await fetch(`${url}/rest/v1/`, {
+            method: 'HEAD',
+            headers: {
+              apikey: key,
+              Authorization: `Bearer ${key}`,
+              'Content-Type': 'application/json',
+            },
+            mode: 'cors',
+          });
+
+          if (response.ok) {
+            log('✅ REST API: SUCCESS', 'success');
+          } else {
+            log(`⚠️ REST API: Status ${response.status}`, 'warning');
+            if (response.status === 401) {
+              log('💡 Status 401: Invalid API key', 'error');
+            } else if (response.status === 403) {
+              log('💡 Status 403: API key lacks permissions', 'error');
+            }
+          }
+        } catch (error) {
+          log(`❌ REST API: FAILED - ${error.message}`, 'error');
+          if (error.message.includes('CORS')) {
+            log(
+              '💡 CORS error: Check Supabase project CORS settings',
+              'warning'
+            );
+          }
+        }
+
+        // Test 3: Auth endpoint
+        log('🔐 Test 3: Auth Endpoint', 'info');
+        try {
+          const response = await fetch(`${url}/auth/v1/settings`, {
+            method: 'GET',
+            headers: {
+              apikey: key,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            log('✅ Auth endpoint: SUCCESS', 'success');
+            const settings = await response.json();
+            log(
+              `📋 Auth settings loaded: ${Object.keys(settings).length} properties`,
+              'info'
+            );
+          } else {
+            log(`⚠️ Auth endpoint: Status ${response.status}`, 'warning');
+          }
+        } catch (error) {
+          log(`❌ Auth endpoint: FAILED - ${error.message}`, 'error');
+        }
+
+        // Test 4: Database query (simple)
+        log('🗄️ Test 4: Database Query', 'info');
+        try {
+          const response = await fetch(`${url}/rest/v1/profiles?select=count`, {
+            method: 'HEAD',
+            headers: {
+              apikey: key,
+              Authorization: `Bearer ${key}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            log(
+              '✅ Database query: SUCCESS (profiles table accessible)',
+              'success'
+            );
+          } else if (response.status === 404) {
+            log('⚠️ Database query: profiles table not found', 'warning');
+            log('💡 You may need to run database setup scripts', 'info');
+          } else {
+            log(`⚠️ Database query: Status ${response.status}`, 'warning');
+          }
+        } catch (error) {
+          log(`❌ Database query: FAILED - ${error.message}`, 'error');
+        }
+
+        log('🎉 Connection test completed!', 'success');
+        log(
+          '💡 If all tests passed, update your .env.local file with these credentials',
+          'info'
+        );
+      }
+
+      // Auto-fill from localStorage if available
+      window.addEventListener('load', () => {
+        const savedUrl = localStorage.getItem('supabase_test_url');
+        const savedKey = localStorage.getItem('supabase_test_key');
+
+        if (savedUrl) document.getElementById('supabaseUrl').value = savedUrl;
+        if (savedKey) document.getElementById('supabaseKey').value = savedKey;
+      });
+
+      // Save to localStorage when testing
+      function saveCredentials() {
+        const url = document.getElementById('supabaseUrl').value.trim();
+        const key = document.getElementById('supabaseKey').value.trim();
+
+        if (url) localStorage.setItem('supabase_test_url', url);
+        if (key) localStorage.setItem('supabase_test_key', key);
+      }
+
+      // Save credentials before testing
+      document
+        .getElementById('supabaseUrl')
+        .addEventListener('change', saveCredentials);
+      document
+        .getElementById('supabaseKey')
+        .addEventListener('change', saveCredentials);
+    </script>
+  </body>
+</html>

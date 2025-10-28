@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sponsor Profile Final Fix Verification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .test-section h3 {
+        margin-top: 0;
+        color: #333;
+      }
+      .status {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+      .pass {
+        background: #d4edda;
+        color: #155724;
+      }
+      .fail {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .btn-primary {
+        background: #007bff;
+        color: white;
+      }
+      .btn-success {
+        background: #28a745;
+        color: white;
+      }
+      .btn-danger {
+        background: #dc3545;
+        color: white;
+      }
+      .btn-warning {
+        background: #ffc107;
+        color: black;
+      }
+      .log {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin: 10px 0;
+      }
+      .schema-info {
+        background: #e7f3ff;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+      .test-data {
+        background: #f0f8f0;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 Sponsor Profile Final Fix Verification</h1>
+      <p>
+        <strong>Testing with ACTUAL database schema:</strong> household_size,
+        elderly_count, pets_count, budget_range
+      </p>
+
+      <div class="schema-info">
+        <h4>📋 Actual Database Schema (sponsor_profiles)</h4>
+        <ul>
+          <li><strong>user_id</strong> (uuid) - Foreign key to users.id</li>
+          <li>
+            <strong>household_size</strong> (integer) - Maps from family_size
+          </li>
+          <li><strong>children_count</strong> (integer) - Direct mapping</li>
+          <li>
+            <strong>elderly_count</strong> (integer) - Maps from
+            elderly_care_needed (boolean → 0/1)
+          </li>
+          <li>
+            <strong>pets_count</strong> (integer) - Maps from pets (boolean →
+            0/1)
+          </li>
+          <li>
+            <strong>preferred_nationality</strong> (varchar) - Array joined with
+            commas
+          </li>
+          <li>
+            <strong>budget_range</strong> (varchar) - Combined from min/max +
+            currency
+          </li>
+          <li>
+            <strong>accommodation_type</strong> (varchar) - Direct mapping
+          </li>
+          <li>
+            <strong>special_requirements</strong> (text) - Combined from various
+            fields
+          </li>
+        </ul>
+      </div>
+
+      <div class="test-section">
+        <h3>🔧 Test Configuration</h3>
+        <div>
+          <label>Test User ID: </label>
+          <input
+            type="text"
+            id="testUserId"
+            placeholder="Enter user ID or generate new"
+            style="width: 300px; padding: 5px"
+          />
+          <button class="btn-warning" onclick="generateTestUserId()">
+            🎲 Generate New Test User ID
+          </button>
+        </div>
+        <div style="margin-top: 10px">
+          <button class="btn-primary" onclick="runAllTests()">
+            🧪 Run All Tests
+          </button>
+          <button class="btn-success" onclick="testSchemaMapping()">
+            📋 Test Schema Mapping
+          </button>
+          <button class="btn-success" onclick="testProfileOperations()">
+            👤 Test Profile Operations
+          </button>
+          <button class="btn-danger" onclick="clearLogs()">
+            🗑️ Clear Logs
+          </button>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h3>📋 Schema Mapping Test</h3>
+        <div id="schemaMappingStatus" class="status pending">PENDING</div>
+        <div class="test-data">
+          <h4>Test Data (Frontend Format):</h4>
+          <pre id="testDataDisplay"></pre>
+        </div>
+        <div class="test-data">
+          <h4>Expected Database Format:</h4>
+          <pre id="expectedMappingDisplay"></pre>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h3>👤 Profile Operations Test</h3>
+        <div>
+          <span>Profile Creation: </span
+          ><span id="profileCreationStatus" class="status pending"
+            >PENDING</span
+          >
+        </div>
+        <div>
+          <span>Profile Retrieval: </span
+          ><span id="profileRetrievalStatus" class="status pending"
+            >PENDING</span
+          >
+        </div>
+        <div>
+          <span>Profile Update: </span
+          ><span id="profileUpdateStatus" class="status pending">PENDING</span>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h3>📊 Test Summary</h3>
+        <div id="testSummary">
+          <div>Total Tests: <span id="totalTests">0</span></div>
+          <div>Passed: <span id="passedTests">0</span></div>
+          <div>Failed: <span id="failedTests">0</span></div>
+          <div>Success Rate: <span id="successRate">0%</span></div>
+        </div>
+      </div>
+
+      <div class="test-section">
+        <h3>📝 Test Logs</h3>
+        <div id="testLogs" class="log">Ready to run tests...</div>
+      </div>
+    </div>
+
+    <script>
+      // Supabase configuration
+      const SUPABASE_URL = 'https://pabjehhnkpyavakduydg.supabase.co';
+      const SUPABASE_ANON_KEY =
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYmplaGhua3B5YXZha2R1eWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2Mzk4MDMsImV4cCI6MjA3MTIxNTgwM30.jrUSeBPn-2Srty-Nqb36NpSgY_b9TV_fIooWRaAIZNg';
+
+      let testResults = {
+        total: 0,
+        passed: 0,
+        failed: 0,
+      };
+
+      function log(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logElement = document.getElementById('testLogs');
+        logElement.innerHTML += `[${timestamp}] ${message}\n`;
+        logElement.scrollTop = logElement.scrollHeight;
+        console.log(`[${timestamp}] ${message}`);
+      }
+
+      function clearLogs() {
+        document.getElementById('testLogs').innerHTML = 'Logs cleared...\n';
+      }
+
+      function generateTestUserId() {
+        const testUserId = 'test-' + Math.random().toString(36).substr(2, 9);
+        document.getElementById('testUserId').value = testUserId;
+        log(`🎲 Generated test user ID: ${testUserId}`);
+      }
+
+      function updateTestStatus(elementId, status, message = '') {
+        const element = document.getElementById(elementId);
+        element.className = `status ${status}`;
+        element.textContent =
+          status.toUpperCase() + (message ? ` - ${message}` : '');
+
+        if (status === 'pass') testResults.passed++;
+        else if (status === 'fail') testResults.failed++;
+        testResults.total++;
+
+        updateTestSummary();
+      }
+
+      function updateTestSummary() {
+        document.getElementById('totalTests').textContent = testResults.total;
+        document.getElementById('passedTests').textContent = testResults.passed;
+        document.getElementById('failedTests').textContent = testResults.failed;
+        const successRate =
+          testResults.total > 0
+            ? Math.round((testResults.passed / testResults.total) * 100)
+            : 0;
+        document.getElementById('successRate').textContent = successRate + '%';
+      }
+
+      // Test data that matches frontend format
+      const testProfileData = {
+        full_name: 'Ahmed Hassan',
+        family_size: 4,
+        children_count: 2,
+        children_ages: [5, 8],
+        elderly_care_needed: true,
+        pets: true,
+        pet_types: ['cat', 'dog'],
+        city: 'Dubai',
+        country: 'UAE',
+        address: '123 Main Street, Dubai',
+        accommodation_type: 'separate_room',
+        preferred_nationality: ['Ethiopian', 'Filipino'],
+        preferred_experience_years: 3,
+        required_skills: ['cooking', 'cleaning', 'childcare'],
+        preferred_languages: ['English', 'Arabic'],
+        salary_budget_min: 1500,
+        salary_budget_max: 2500,
+        currency: 'AED',
+        live_in_required: true,
+        working_hours_per_day: 8,
+        days_off_per_week: 1,
+        overtime_available: false,
+      };
+
+      // Expected database mapping
+      const expectedDatabaseMapping = {
+        household_size: 4,
+        children_count: 2,
+        elderly_count: 1, // true → 1
+        pets_count: 1, // true → 1
+        preferred_nationality: 'Ethiopian,Filipino', // array → comma-separated
+        budget_range: '1500-2500 AED', // combined from min/max + currency
+        work_type_preference: 'full-time',
+        accommodation_type: 'separate_room',
+        special_requirements:
+          'City: Dubai; Address: 123 Main Street, Dubai; Skills: cooking, cleaning, childcare; Languages: English, Arabic; Children ages: 5, 8; Pet types: cat, dog; Experience: 3 years',
+        verification_status: 'pending',
+      };
+
+      function testSchemaMapping() {
+        log('🔍 Testing schema mapping...');
+
+        // Display test data
+        document.getElementById('testDataDisplay').textContent = JSON.stringify(
+          testProfileData,
+          null,
+          2
+        );
+        document.getElementById('expectedMappingDisplay').textContent =
+          JSON.stringify(expectedDatabaseMapping, null, 2);
+
+        // Test the mapping logic
+        try {
+          // This simulates the mapping logic from sponsorService.js
+          const mappedData = mapProfileDataToDatabase(testProfileData);
+
+          let mappingCorrect = true;
+          const errors = [];
+
+          // Check each mapping
+          Object.keys(expectedDatabaseMapping).forEach((key) => {
+            if (mappedData[key] !== expectedDatabaseMapping[key]) {
+              mappingCorrect = false;
+              errors.push(
+                `${key}: expected "${expectedDatabaseMapping[key]}", got "${mappedData[key]}"`
+              );
+            }
+          });
+
+          if (mappingCorrect) {
+            updateTestStatus(
+              'schemaMappingStatus',
+              'pass',
+              'All mappings correct'
+            );
+            log('✅ Schema mapping test passed');
+          } else {
+            updateTestStatus(
+              'schemaMappingStatus',
+              'fail',
+              `Mapping errors: ${errors.join(', ')}`
+            );
+            log(`❌ Schema mapping test failed: ${errors.join(', ')}`);
+          }
+        } catch (error) {
+          updateTestStatus('schemaMappingStatus', 'fail', error.message);
+          log(`❌ Schema mapping test error: ${error.message}`);
+        }
+      }
+
+      // Simulate the mapping logic from sponsorService.js
+      function mapProfileDataToDatabase(profileData) {
+        const mappedData = {};
+
+        if (profileData.family_size !== undefined) {
+          mappedData.household_size = profileData.family_size;
+        }
+        if (profileData.children_count !== undefined) {
+          mappedData.children_count = profileData.children_count;
+        }
+        if (profileData.elderly_care_needed !== undefined) {
+          mappedData.elderly_count = profileData.elderly_care_needed ? 1 : 0;
+        }
+        if (profileData.pets !== undefined) {
+          mappedData.pets_count = profileData.pets ? 1 : 0;
+        }
+        if (profileData.preferred_nationality !== undefined) {
+          mappedData.preferred_nationality = Array.isArray(
+            profileData.preferred_nationality
+          )
+            ? profileData.preferred_nationality.join(',')
+            : profileData.preferred_nationality || '';
+        }
+        if (
+          profileData.salary_budget_min !== undefined &&
+          profileData.salary_budget_max !== undefined
+        ) {
+          const currency = profileData.currency || 'AED';
+          mappedData.budget_range = `${profileData.salary_budget_min}-${profileData.salary_budget_max} ${currency}`;
+        }
+        mappedData.work_type_preference = 'full-time';
+        if (profileData.accommodation_type !== undefined) {
+          mappedData.accommodation_type = profileData.accommodation_type;
+        }
+
+        // Map special_requirements
+        const specialReqs = [];
+        if (profileData.city) specialReqs.push(`City: ${profileData.city}`);
+        if (profileData.address)
+          specialReqs.push(`Address: ${profileData.address}`);
+        if (
+          profileData.required_skills &&
+          Array.isArray(profileData.required_skills)
+        ) {
+          specialReqs.push(`Skills: ${profileData.required_skills.join(', ')}`);
+        }
+        if (
+          profileData.preferred_languages &&
+          Array.isArray(profileData.preferred_languages)
+        ) {
+          specialReqs.push(
+            `Languages: ${profileData.preferred_languages.join(', ')}`
+          );
+        }
+        if (
+          profileData.children_ages &&
+          Array.isArray(profileData.children_ages)
+        ) {
+          specialReqs.push(
+            `Children ages: ${profileData.children_ages.join(', ')}`
+          );
+        }
+        if (profileData.pet_types && Array.isArray(profileData.pet_types)) {
+          specialReqs.push(`Pet types: ${profileData.pet_types.join(', ')}`);
+        }
+        if (profileData.preferred_experience_years) {
+          specialReqs.push(
+            `Experience: ${profileData.preferred_experience_years} years`
+          );
+        }
+        if (specialReqs.length > 0) {
+          mappedData.special_requirements = specialReqs.join('; ');
+        }
+
+        mappedData.verification_status = 'pending';
+
+        return mappedData;
+      }
+
+      async function testProfileOperations() {
+        const userId = document.getElementById('testUserId').value;
+        if (!userId) {
+          log('❌ Please enter a test user ID first');
+          return;
+        }
+
+        log('🔍 Running profile operation tests...');
+
+        // Test profile creation
+        try {
+          const createResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/sponsor_profiles`,
+            {
+              method: 'POST',
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                Prefer: 'return=representation',
+              },
+              body: JSON.stringify({
+                user_id: userId,
+                ...mapProfileDataToDatabase(testProfileData),
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }),
+            }
+          );
+
+          if (createResponse.ok) {
+            updateTestStatus('profileCreationStatus', 'pass');
+            log('✅ Profile creation succeeded');
+          } else {
+            const error = await createResponse.text();
+            updateTestStatus('profileCreationStatus', 'fail', error);
+            log(`❌ Profile creation failed: ${error}`);
+          }
+        } catch (error) {
+          updateTestStatus('profileCreationStatus', 'fail', error.message);
+          log(`❌ Profile creation failed: ${error.message}`);
+        }
+
+        // Test profile retrieval
+        try {
+          const retrieveResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/sponsor_profiles?user_id=eq.${userId}&select=*`,
+            {
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              },
+            }
+          );
+
+          if (retrieveResponse.ok) {
+            const data = await retrieveResponse.json();
+            if (data && data.length > 0) {
+              updateTestStatus('profileRetrievalStatus', 'pass');
+              log('✅ Profile retrieval succeeded');
+            } else {
+              updateTestStatus(
+                'profileRetrievalStatus',
+                'fail',
+                'No data returned'
+              );
+              log('❌ Profile retrieval failed: No data returned');
+            }
+          } else {
+            const error = await retrieveResponse.text();
+            updateTestStatus('profileRetrievalStatus', 'fail', error);
+            log(`❌ Profile retrieval failed: ${error}`);
+          }
+        } catch (error) {
+          updateTestStatus('profileRetrievalStatus', 'fail', error.message);
+          log(`❌ Profile retrieval failed: ${error.message}`);
+        }
+
+        // Test profile update
+        try {
+          const updateData = {
+            household_size: 5, // Changed from 4
+            budget_range: '2000-3000 AED', // Changed budget
+            updated_at: new Date().toISOString(),
+          };
+
+          const updateResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/sponsor_profiles?user_id=eq.${userId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                Prefer: 'return=representation',
+              },
+              body: JSON.stringify(updateData),
+            }
+          );
+
+          if (updateResponse.ok) {
+            updateTestStatus('profileUpdateStatus', 'pass');
+            log('✅ Profile update succeeded');
+          } else {
+            const error = await updateResponse.text();
+            updateTestStatus('profileUpdateStatus', 'fail', error);
+            log(`❌ Profile update failed: ${error}`);
+          }
+        } catch (error) {
+          updateTestStatus('profileUpdateStatus', 'fail', error.message);
+          log(`❌ Profile update failed: ${error.message}`);
+        }
+      }
+
+      async function runAllTests() {
+        log('🚀 Starting comprehensive sponsor profile tests...');
+
+        // Reset test results
+        testResults = { total: 0, passed: 0, failed: 0 };
+
+        // Generate test user ID if not provided
+        if (!document.getElementById('testUserId').value) {
+          generateTestUserId();
+        }
+
+        // Run all tests
+        testSchemaMapping();
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Small delay
+        await testProfileOperations();
+
+        log('🏁 All tests completed!');
+      }
+
+      // Initialize
+      document.addEventListener('DOMContentLoaded', function () {
+        generateTestUserId();
+        log('🎯 Sponsor Profile Final Fix Verification ready!');
+        log(
+          '📋 Testing with ACTUAL database schema: household_size, elderly_count, pets_count, budget_range'
+        );
+      });
+    </script>
+  </body>
+</html>

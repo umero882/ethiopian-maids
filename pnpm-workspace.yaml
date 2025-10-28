@@ -1,0 +1,12 @@
+packages:
+  # Apps
+  - 'apps/*'
+
+  # Services
+  - 'services/*'
+
+  # Packages
+  - 'packages/*'
+  - 'packages/app/*'
+  - 'packages/domain/*'
+  - 'packages/infra/*'

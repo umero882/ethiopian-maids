@@ -1,0 +1,29 @@
+{
+  "name": "@ethio-maids/api",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Ethiopian Maids API - HTTP Controllers & Route Handlers",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "start": "node index.js",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@ethio-maids/app-identity": "workspace:*",
+    "@ethio-maids/app-profiles-maid": "workspace:*",
+    "@ethio-maids/app-profiles-sponsor": "workspace:*",
+    "@ethio-maids/app-profiles-agency": "workspace:*",
+    "@ethio-maids/app-jobs": "workspace:*",
+    "@ethio-maids/app-subscriptions": "workspace:*",
+    "@ethio-maids/utils": "workspace:*",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "express-rate-limit": "^7.5.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "vitest": "^3.2.4"
+  }
+}

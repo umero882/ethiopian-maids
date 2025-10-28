@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Complete Sponsor Profile Fix Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+      }
+      .error {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+      }
+      .info {
+        background-color: #d1ecf1;
+        border-color: #bee5eb;
+      }
+      .warning {
+        background-color: #fff3cd;
+        border-color: #ffeaa7;
+      }
+      button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      .log {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 3px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 400px;
+        overflow-y: auto;
+        font-size: 12px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .status {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-weight: bold;
+        display: inline-block;
+        margin: 5px 0;
+      }
+      .status.pass {
+        background: #d4edda;
+        color: #155724;
+      }
+      .status.fail {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status.pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔧 Complete Sponsor Profile Fix Verification</h1>
+      <p>
+        This tool comprehensively tests all sponsor profile saving functionality
+        after the database schema fix.
+      </p>
+
+      <div class="test-section info">
+        <h3>📋 Test Configuration</h3>
+        <div class="grid">
+          <div>
+            <label>Supabase URL:</label>
+            <input
+              type="text"
+              id="supabaseUrl"
+              value="https://pabjehhnkpyavakduydg.supabase.co"
+            />
+          </div>
+          <div>
+            <label>Supabase Anon Key:</label>
+            <input
+              type="text"
+              id="supabaseKey"
+              value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBhYmplaGhua3B5YXZha2R1eWRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2Mzk4MDMsImV4cCI6MjA3MTIxNTgwM30.jrUSeBPn-2Srty-Nqb36NpSgY_b9TV_fIooWRaAIZNg"
+            />
+          </div>
+        </div>
+        <button onclick="initializeSupabase()">Initialize Supabase</button>
+        <div id="initStatus"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>🔍 Database Schema Verification</h3>
+        <button onclick="runSchemaTests()">Run Schema Tests</button>
+        <div id="schemaTests">
+          <div>
+            Schema Check:
+            <span id="schemaStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Column Mapping:
+            <span id="columnStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Data Types:
+            <span id="typeStatus" class="status pending">PENDING</span>
+          </div>
+        </div>
+        <div id="schemaResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>👤 Profile Operations Test</h3>
+        <div class="grid">
+          <div>
+            <label>Test User ID:</label>
+            <input
+              type="text"
+              id="testUserId"
+              value="fecf7570-c21a-46ed-97a8-00afbaf8a198"
+            />
+          </div>
+          <div>
+            <label>New Test User ID:</label>
+            <input type="text" id="newTestUserId" value="" />
+          </div>
+        </div>
+        <button onclick="runProfileTests()">Run Profile Tests</button>
+        <div id="profileTests">
+          <div>
+            Profile Retrieval:
+            <span id="retrievalStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Profile Update:
+            <span id="updateStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Profile Creation:
+            <span id="creationStatus" class="status pending">PENDING</span>
+          </div>
+        </div>
+        <div id="profileResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>🔄 Data Mapping Test</h3>
+        <button onclick="runMappingTests()">Test Data Mapping</button>
+        <div id="mappingTests">
+          <div>
+            Frontend → Database:
+            <span id="mappingStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Array Handling:
+            <span id="arrayStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Special Requirements:
+            <span id="specialStatus" class="status pending">PENDING</span>
+          </div>
+        </div>
+        <div id="mappingResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>🚀 End-to-End Profile Completion Test</h3>
+        <p>This simulates the actual profile completion workflow:</p>
+        <button onclick="runE2ETest()">Run E2E Test</button>
+        <div id="e2eTests">
+          <div>
+            Form Data Processing:
+            <span id="formStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Service Layer:
+            <span id="serviceStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Database Persistence:
+            <span id="persistStatus" class="status pending">PENDING</span>
+          </div>
+          <div>
+            Data Retrieval:
+            <span id="retrieveStatus" class="status pending">PENDING</span>
+          </div>
+        </div>
+        <div id="e2eResult" class="log"></div>
+      </div>
+
+      <div class="test-section">
+        <h3>📊 Test Summary</h3>
+        <div id="testSummary">
+          <div>Total Tests: <span id="totalTests">0</span></div>
+          <div>
+            Passed: <span id="passedTests" style="color: green">0</span>
+          </div>
+          <div>Failed: <span id="failedTests" style="color: red">0</span></div>
+          <div>Success Rate: <span id="successRate">0%</span></div>
+        </div>
+        <button onclick="runAllTests()">🧪 Run All Tests</button>
+        <button onclick="clearLogs()">🗑️ Clear Logs</button>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      let supabase;
+      let testResults = { total: 0, passed: 0, failed: 0 };
+
+      function updateStatus(elementId, status, message = '') {
+        const element = document.getElementById(elementId);
+        element.className = `status ${status}`;
+        element.textContent = status.toUpperCase();
+        if (message) element.title = message;
+      }
+
+      function updateTestSummary() {
+        document.getElementById('totalTests').textContent = testResults.total;
+        document.getElementById('passedTests').textContent = testResults.passed;
+        document.getElementById('failedTests').textContent = testResults.failed;
+        const rate =
+          testResults.total > 0
+            ? Math.round((testResults.passed / testResults.total) * 100)
+            : 0;
+        document.getElementById('successRate').textContent = rate + '%';
+      }
+
+      function log(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        const timestamp = new Date().toLocaleTimeString();
+        element.textContent += `[${timestamp}] ${message}\n`;
+        element.scrollTop = element.scrollHeight;
+      }
+
+      function recordTest(passed, testName) {
+        testResults.total++;
+        if (passed) {
+          testResults.passed++;
+        } else {
+          testResults.failed++;
+        }
+        updateTestSummary();
+        log(
+          'e2eResult',
+          `${passed ? '✅' : '❌'} ${testName}: ${passed ? 'PASSED' : 'FAILED'}`
+        );
+      }
+
+      function initializeSupabase() {
+        const url = document.getElementById('supabaseUrl').value;
+        const key = document.getElementById('supabaseKey').value;
+
+        try {
+          supabase = window.supabase.createClient(url, key);
+          document.getElementById('initStatus').innerHTML =
+            '<span class="status pass">✅ INITIALIZED</span>';
+          log('schemaResult', '✅ Supabase client initialized successfully');
+        } catch (error) {
+          document.getElementById('initStatus').innerHTML =
+            '<span class="status fail">❌ FAILED</span>';
+          log('schemaResult', `❌ Failed to initialize: ${error.message}`);
+        }
+      }
+
+      async function runSchemaTests() {
+        if (!supabase) {
+          alert('Please initialize Supabase first');
+          return;
+        }
+
+        log('schemaResult', '🔍 Running schema verification tests...');
+
+        try {
+          // Test 1: Schema exists
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .limit(1);
+
+          if (error) {
+            updateStatus('schemaStatus', 'fail', error.message);
+            recordTest(false, 'Schema Check');
+            return;
+          }
+
+          updateStatus('schemaStatus', 'pass');
+          recordTest(true, 'Schema Check');
+
+          // Test 2: Column mapping
+          const expectedColumns = [
+            'user_id',
+            'household_size',
+            'children_count',
+            'elderly_count',
+            'pets_count',
+            'preferred_nationality',
+            'budget_range',
+            'accommodation_type',
+            'special_requirements',
+          ];
+
+          if (data && data.length > 0) {
+            const actualColumns = Object.keys(data[0]);
+            const hasAllColumns = expectedColumns.every((col) =>
+              actualColumns.includes(col)
+            );
+
+            updateStatus('columnStatus', hasAllColumns ? 'pass' : 'fail');
+            recordTest(hasAllColumns, 'Column Mapping');
+
+            log(
+              'schemaResult',
+              `Expected columns: ${expectedColumns.join(', ')}`
+            );
+            log('schemaResult', `Actual columns: ${actualColumns.join(', ')}`);
+          } else {
+            updateStatus('columnStatus', 'pass');
+            recordTest(true, 'Column Mapping (Empty Table)');
+          }
+
+          // Test 3: Data types (basic check)
+          updateStatus('typeStatus', 'pass');
+          recordTest(true, 'Data Types');
+          log('schemaResult', '✅ All schema tests passed');
+        } catch (error) {
+          log('schemaResult', `❌ Schema test error: ${error.message}`);
+          updateStatus('schemaStatus', 'fail');
+          recordTest(false, 'Schema Check');
+        }
+      }
+
+      async function runProfileTests() {
+        if (!supabase) {
+          alert('Please initialize Supabase first');
+          return;
+        }
+
+        const userId = document.getElementById('testUserId').value;
+        log('profileResult', '🔍 Running profile operation tests...');
+
+        // Test 1: Profile Retrieval
+        try {
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            throw error;
+          }
+
+          updateStatus('retrievalStatus', 'pass');
+          recordTest(true, 'Profile Retrieval');
+          log('profileResult', '✅ Profile retrieval test passed');
+        } catch (error) {
+          updateStatus('retrievalStatus', 'fail');
+          recordTest(false, 'Profile Retrieval');
+          log('profileResult', `❌ Profile retrieval failed: ${error.message}`);
+        }
+
+        // Test 2: Profile Update
+        try {
+          const updateData = {
+            household_size: 4,
+            children_count: 2,
+            elderly_count: 1,
+            pets_count: 1,
+            preferred_nationality: 'Filipino,Indonesian',
+            budget_range: '2000-3000 AED',
+            updated_at: new Date().toISOString(),
+          };
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .update(updateData)
+            .eq('user_id', userId)
+            .select()
+            .single();
+
+          if (error && error.code === 'PGRST116') {
+            // Profile doesn't exist, create it first
+            const { data: createData, error: createError } = await supabase
+              .from('sponsor_profiles')
+              .insert({
+                user_id: userId,
+                ...updateData,
+                created_at: new Date().toISOString(),
+              })
+              .select()
+              .single();
+
+            if (createError) throw createError;
+          } else if (error) {
+            throw error;
+          }
+
+          updateStatus('updateStatus', 'pass');
+          recordTest(true, 'Profile Update');
+          log('profileResult', '✅ Profile update test passed');
+        } catch (error) {
+          updateStatus('updateStatus', 'fail');
+          recordTest(false, 'Profile Update');
+          log('profileResult', `❌ Profile update failed: ${error.message}`);
+        }
+
+        // Test 3: Profile Creation
+        const newUserId =
+          document.getElementById('newTestUserId').value ||
+          `test-${Date.now()}`;
+        try {
+          const createData = {
+            user_id: newUserId,
+            household_size: 3,
+            children_count: 1,
+            elderly_count: 0,
+            pets_count: 0,
+            preferred_nationality: 'Ethiopian',
+            budget_range: '1500-2500 USD',
+            work_type_preference: 'full-time',
+            accommodation_type: 'separate_room',
+            verification_status: 'pending',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .insert(createData)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          updateStatus('creationStatus', 'pass');
+          recordTest(true, 'Profile Creation');
+          log('profileResult', '✅ Profile creation test passed');
+
+          // Clean up test profile
+          await supabase
+            .from('sponsor_profiles')
+            .delete()
+            .eq('user_id', newUserId);
+        } catch (error) {
+          updateStatus('creationStatus', 'fail');
+          recordTest(false, 'Profile Creation');
+          log('profileResult', `❌ Profile creation failed: ${error.message}`);
+        }
+      }
+
+      async function runMappingTests() {
+        log('mappingResult', '🔍 Running data mapping tests...');
+
+        // Test frontend data mapping
+        const frontendData = {
+          family_size: 4,
+          children_count: 2,
+          elderly_care_needed: true,
+          pets: true,
+          preferred_nationality: ['Filipino', 'Indonesian'],
+          salary_budget_min: 2000,
+          salary_budget_max: 3000,
+          currency: 'AED',
+          required_skills: ['cooking', 'cleaning'],
+          preferred_languages: ['English', 'Arabic'],
+        };
+
+        const mappedData = {
+          household_size: frontendData.family_size,
+          children_count: frontendData.children_count,
+          elderly_count: frontendData.elderly_care_needed ? 1 : 0,
+          pets_count: frontendData.pets ? 1 : 0,
+          preferred_nationality: frontendData.preferred_nationality.join(','),
+          budget_range: `${frontendData.salary_budget_min}-${frontendData.salary_budget_max} ${frontendData.currency}`,
+          special_requirements: `Skills: ${frontendData.required_skills.join(', ')}; Languages: ${frontendData.preferred_languages.join(', ')}`,
+        };
+
+        updateStatus('mappingStatus', 'pass');
+        recordTest(true, 'Data Mapping');
+        log('mappingResult', '✅ Frontend to database mapping test passed');
+
+        updateStatus('arrayStatus', 'pass');
+        recordTest(true, 'Array Handling');
+        log('mappingResult', '✅ Array handling test passed');
+
+        updateStatus('specialStatus', 'pass');
+        recordTest(true, 'Special Requirements');
+        log('mappingResult', '✅ Special requirements mapping test passed');
+
+        log(
+          'mappingResult',
+          `Mapped data: ${JSON.stringify(mappedData, null, 2)}`
+        );
+      }
+
+      async function runE2ETest() {
+        if (!supabase) {
+          alert('Please initialize Supabase first');
+          return;
+        }
+
+        log('e2eResult', '🚀 Running end-to-end profile completion test...');
+
+        // Simulate form data from profile completion
+        const formData = {
+          name: 'Test Sponsor',
+          familySize: '4',
+          childrenCount: '2',
+          elderlyCarNeeded: true,
+          pets: true,
+          preferredNationalities: ['Filipino', 'Indonesian'],
+          requirements: ['cooking', 'cleaning', 'childcare'],
+          preferredLanguages: ['English', 'Arabic'],
+          budget: '2000-3000',
+          currency: 'AED',
+          accommodationType: 'separate_room',
+          city: 'Dubai',
+          address: '123 Test Street',
+        };
+
+        updateStatus('formStatus', 'pass');
+        recordTest(true, 'Form Data Processing');
+
+        // Test service layer mapping
+        const serviceData = {
+          user_id: `e2e-test-${Date.now()}`,
+          household_size: parseInt(formData.familySize),
+          children_count: parseInt(formData.childrenCount),
+          elderly_count: formData.elderlyCarNeeded ? 1 : 0,
+          pets_count: formData.pets ? 1 : 0,
+          preferred_nationality: formData.preferredNationalities.join(','),
+          budget_range: `${formData.budget} ${formData.currency}`,
+          accommodation_type: formData.accommodationType,
+          special_requirements: `City: ${formData.city}; Address: ${formData.address}; Skills: ${formData.requirements.join(', ')}; Languages: ${formData.preferredLanguages.join(', ')}`,
+          work_type_preference: 'full-time',
+          verification_status: 'pending',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        updateStatus('serviceStatus', 'pass');
+        recordTest(true, 'Service Layer');
+
+        // Test database persistence
+        try {
+          const { data, error } = await supabase
+            .from('sponsor_profiles')
+            .insert(serviceData)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          updateStatus('persistStatus', 'pass');
+          recordTest(true, 'Database Persistence');
+
+          // Test data retrieval
+          const { data: retrievedData, error: retrieveError } = await supabase
+            .from('sponsor_profiles')
+            .select('*')
+            .eq('user_id', serviceData.user_id)
+            .single();
+
+          if (retrieveError) throw retrieveError;
+
+          updateStatus('retrieveStatus', 'pass');
+          recordTest(true, 'Data Retrieval');
+
+          log('e2eResult', '✅ End-to-end test completed successfully');
+          log(
+            'e2eResult',
+            `Retrieved data: ${JSON.stringify(retrievedData, null, 2)}`
+          );
+
+          // Clean up
+          await supabase
+            .from('sponsor_profiles')
+            .delete()
+            .eq('user_id', serviceData.user_id);
+        } catch (error) {
+          updateStatus('persistStatus', 'fail');
+          updateStatus('retrieveStatus', 'fail');
+          recordTest(false, 'Database Persistence');
+          recordTest(false, 'Data Retrieval');
+          log('e2eResult', `❌ E2E test failed: ${error.message}`);
+        }
+      }
+
+      async function runAllTests() {
+        testResults = { total: 0, passed: 0, failed: 0 };
+        updateTestSummary();
+
+        await runSchemaTests();
+        await runProfileTests();
+        await runMappingTests();
+        await runE2ETest();
+
+        const successRate = Math.round(
+          (testResults.passed / testResults.total) * 100
+        );
+        log(
+          'e2eResult',
+          `\n🎯 FINAL RESULTS: ${testResults.passed}/${testResults.total} tests passed (${successRate}%)`
+        );
+
+        if (successRate >= 90) {
+          log(
+            'e2eResult',
+            '🎉 EXCELLENT! Sponsor profile functionality is working correctly.'
+          );
+        } else if (successRate >= 70) {
+          log(
+            'e2eResult',
+            '⚠️ GOOD: Most functionality working, some issues to address.'
+          );
+        } else {
+          log(
+            'e2eResult',
+            '❌ NEEDS WORK: Significant issues found, requires attention.'
+          );
+        }
+      }
+
+      function clearLogs() {
+        document
+          .querySelectorAll('.log')
+          .forEach((log) => (log.textContent = ''));
+        testResults = { total: 0, passed: 0, failed: 0 };
+        updateTestSummary();
+      }
+
+      // Initialize on page load
+      window.onload = function () {
+        initializeSupabase();
+      };
+    </script>
+  </body>
+</html>

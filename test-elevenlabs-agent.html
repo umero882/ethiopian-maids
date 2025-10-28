@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElevenLabs Agent Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-weight: bold;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      .warning {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+      .info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+      button {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background-color: #218838;
+      }
+      button:disabled {
+        background-color: #6c757d;
+        cursor: not-allowed;
+      }
+      .widget-container {
+        border: 2px dashed #ccc;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 300px;
+        border-radius: 8px;
+        background-color: #fafafa;
+      }
+      pre {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎤 ElevenLabs Voice Agent Test</h1>
+      <p>
+        This page tests the ElevenLabs ConvAI widget integration for Ethiopian
+        Maids platform.
+      </p>
+
+      <div id="status-container">
+        <div class="status info">🔄 Initializing test...</div>
+      </div>
+
+      <div class="widget-container" id="widget-container">
+        <p style="text-align: center; color: #666">
+          📱 ElevenLabs widget will appear here when activated
+        </p>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0">
+        <button id="test-script" onclick="testScriptLoading()">
+          Test Script Loading
+        </button>
+        <button id="test-widget" onclick="testWidget()" disabled>
+          Test Widget Creation
+        </button>
+        <button id="start-voice" onclick="startVoiceAgent()" disabled>
+          Start Voice Agent
+        </button>
+        <button id="clear-logs" onclick="clearLogs()">Clear Logs</button>
+      </div>
+
+      <div>
+        <h3>📊 Test Results:</h3>
+        <pre id="test-logs">Starting ElevenLabs integration test...\n</pre>
+      </div>
+
+      <div>
+        <h3>🔧 Configuration:</h3>
+        <pre>
+Agent ID: agent_5301k3h9y7cbezt8kq5s38a0857h
+Script URL: https://unpkg.com/@elevenlabs/convai-widget-embed
+Widget Element: &lt;elevenlabs-convai&gt;</pre
+        >
+      </div>
+    </div>
+
+    <script>
+      let testLogs = [];
+
+      function log(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const logMessage = `[${timestamp}] ${message}`;
+        testLogs.push(logMessage);
+
+        const logsElement = document.getElementById('test-logs');
+        logsElement.textContent = testLogs.join('\n');
+
+        console.log(logMessage);
+
+        // Update status
+        const statusContainer = document.getElementById('status-container');
+        const statusClass =
+          type === 'error'
+            ? 'error'
+            : type === 'success'
+              ? 'success'
+              : type === 'warning'
+                ? 'warning'
+                : 'info';
+        statusContainer.innerHTML = `<div class="status ${statusClass}">${message}</div>`;
+      }
+
+      function clearLogs() {
+        testLogs = [];
+        document.getElementById('test-logs').textContent = 'Logs cleared.\n';
+      }
+
+      function testScriptLoading() {
+        log('🔄 Testing ElevenLabs script loading...');
+
+        // Check if script already exists
+        const existingScript = document.querySelector(
+          'script[src*="elevenlabs"]'
+        );
+        if (existingScript) {
+          log('⚠️ ElevenLabs script already exists in DOM', 'warning');
+          checkCustomElement();
+          return;
+        }
+
+        // Load the script
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@elevenlabs/convai-widget-embed';
+        script.async = true;
+        script.type = 'text/javascript';
+
+        script.onload = () => {
+          log('✅ ElevenLabs script loaded successfully!', 'success');
+          checkCustomElement();
+        };
+
+        script.onerror = () => {
+          log('❌ Failed to load ElevenLabs script', 'error');
+          log('Check your internet connection and try again', 'error');
+        };
+
+        document.head.appendChild(script);
+        log('📡 Script loading initiated...');
+      }
+
+      function checkCustomElement() {
+        log('🔍 Checking for elevenlabs-convai custom element...');
+
+        const checkElement = () => {
+          if (
+            window.customElements &&
+            window.customElements.get('elevenlabs-convai')
+          ) {
+            log(
+              '✅ elevenlabs-convai custom element is registered!',
+              'success'
+            );
+            document.getElementById('test-widget').disabled = false;
+            return true;
+          } else {
+            log('⏳ Custom element not yet registered, waiting...');
+            setTimeout(checkElement, 500);
+            return false;
+          }
+        };
+
+        checkElement();
+      }
+
+      function testWidget() {
+        log('🧪 Testing widget creation...');
+
+        const widgetContainer = document.getElementById('widget-container');
+        widgetContainer.innerHTML = `
+                <elevenlabs-convai 
+                    agent-id="agent_5301k3h9y7cbezt8kq5s38a0857h"
+                    style="width: 100%; height: 300px; border: none;">
+                </elevenlabs-convai>
+            `;
+
+        log('✅ Widget element created in DOM', 'success');
+
+        // Check if widget is properly initialized
+        setTimeout(() => {
+          const widget = widgetContainer.querySelector('elevenlabs-convai');
+          if (widget) {
+            log('✅ Widget element found in DOM', 'success');
+            log(
+              `📋 Widget attributes: ${Array.from(widget.attributes)
+                .map((attr) => `${attr.name}="${attr.value}"`)
+                .join(', ')}`
+            );
+            document.getElementById('start-voice').disabled = false;
+          } else {
+            log('❌ Widget element not found', 'error');
+          }
+        }, 1000);
+      }
+
+      function startVoiceAgent() {
+        log('🎤 Attempting to start voice agent...');
+
+        // Check microphone permission
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices
+            .getUserMedia({ audio: true })
+            .then((stream) => {
+              log('✅ Microphone access granted', 'success');
+              stream.getTracks().forEach((track) => track.stop()); // Stop the stream
+              log(
+                '🎯 Voice agent should now be active. Try speaking!',
+                'success'
+              );
+            })
+            .catch((err) => {
+              log(`❌ Microphone access denied: ${err.message}`, 'error');
+              log('Please allow microphone access and try again', 'warning');
+            });
+        } else {
+          log('❌ getUserMedia not supported in this browser', 'error');
+        }
+      }
+
+      // Auto-start the test
+      window.onload = () => {
+        log('🚀 ElevenLabs Voice Agent Test Started');
+        log('🌐 User Agent: ' + navigator.userAgent);
+        testScriptLoading();
+      };
+    </script>
+  </body>
+</html>

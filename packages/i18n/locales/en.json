@@ -1,0 +1,224 @@
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "submit": "Submit",
+      "delete": "Delete",
+      "edit": "Edit",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "close": "Close",
+      "search": "Search",
+      "filter": "Filter",
+      "clear": "Clear",
+      "apply": "Apply",
+      "upload": "Upload",
+      "download": "Download",
+      "view": "View",
+      "viewDetails": "View Details",
+      "learnMore": "Learn More",
+      "getStarted": "Get Started"
+    },
+    "labels": {
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "name": "Name",
+      "phone": "Phone Number",
+      "country": "Country",
+      "city": "City",
+      "address": "Address",
+      "description": "Description",
+      "status": "Status",
+      "date": "Date",
+      "time": "Time",
+      "language": "Language",
+      "currency": "Currency"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "success": "Success!",
+      "error": "An error occurred",
+      "noResults": "No results found",
+      "confirmDelete": "Are you sure you want to delete this item?",
+      "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidPhone": "Please enter a valid phone number",
+      "passwordTooShort": "Password must be at least 8 characters",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "invalidFormat": "Invalid format"
+    },
+    "navigation": {
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout",
+      "login": "Login",
+      "register": "Register"
+    }
+  },
+  "identity": {
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Join Ethiopian Maids Platform",
+      "selectRole": "Select Your Role",
+      "roles": {
+        "maid": "Domestic Worker",
+        "maidDescription": "Find job opportunities in the GCC region",
+        "sponsor": "Sponsor",
+        "sponsorDescription": "Find qualified domestic workers",
+        "agency": "Agency",
+        "agencyDescription": "Manage your roster and placements"
+      },
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Create a password",
+      "confirmPasswordPlaceholder": "Confirm your password",
+      "agreeToTerms": "I agree to the Terms of Service and Privacy Policy",
+      "submitButton": "Create Account",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInLink": "Sign in"
+    },
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "submitButton": "Sign In",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Create one"
+    },
+    "verification": {
+      "emailTitle": "Verify Your Email",
+      "emailMessage": "We sent a verification link to {{email}}",
+      "emailInstructions": "Please check your inbox and click the link to verify your account",
+      "phoneTitle": "Verify Your Phone",
+      "phoneMessage": "Enter the code sent to {{phoneNumber}}",
+      "codeLabel": "Verification Code",
+      "codePlaceholder": "Enter 6-digit code",
+      "resendCode": "Resend Code",
+      "verifyButton": "Verify"
+    }
+  },
+  "profiles": {
+    "maid": {
+      "title": "Maid Profile",
+      "overview": "Profile Overview",
+      "personalInfo": "Personal Information",
+      "experience": "Work Experience",
+      "skills": "Skills & Languages",
+      "documents": "Documents",
+      "availability": "Availability",
+      "fields": {
+        "fullName": "Full Name",
+        "dateOfBirth": "Date of Birth",
+        "nationality": "Nationality",
+        "maritalStatus": "Marital Status",
+        "experienceYears": "Years of Experience",
+        "previousCountries": "Countries Worked In",
+        "skills": "Skills",
+        "languages": "Languages Spoken",
+        "preferredSalary": "Preferred Salary",
+        "availableFrom": "Available From",
+        "passportNumber": "Passport Number",
+        "passportExpiry": "Passport Expiry"
+      },
+      "completion": {
+        "title": "Complete Your Profile",
+        "progress": "Profile {{percent}}% Complete",
+        "steps": {
+          "personal": "Personal Information",
+          "experience": "Work Experience",
+          "skills": "Skills & Languages",
+          "documents": "Documents Upload"
+        }
+      }
+    },
+    "sponsor": {
+      "title": "Sponsor Profile",
+      "overview": "Profile Overview",
+      "fields": {
+        "fullName": "Full Name",
+        "country": "Country",
+        "city": "City",
+        "familySize": "Family Size",
+        "preferences": "Preferences"
+      }
+    }
+  },
+  "jobs": {
+    "title": "Job Postings",
+    "create": "Post a Job",
+    "search": "Search Jobs",
+    "filters": {
+      "location": "Location",
+      "salary": "Salary Range",
+      "experience": "Experience Level",
+      "contractType": "Contract Type"
+    },
+    "fields": {
+      "jobTitle": "Job Title",
+      "location": "Location",
+      "salary": "Salary",
+      "description": "Job Description",
+      "requirements": "Requirements",
+      "benefits": "Benefits",
+      "contractDuration": "Contract Duration",
+      "startDate": "Start Date"
+    },
+    "apply": "Apply Now",
+    "viewApplications": "View Applications",
+    "noJobs": "No job postings available"
+  },
+  "subscriptions": {
+    "title": "Subscription Plans",
+    "currentPlan": "Current Plan",
+    "choosePlan": "Choose a Plan",
+    "upgrade": "Upgrade",
+    "cancel": "Cancel Subscription",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "Basic access to the platform"
+      },
+      "pro": {
+        "name": "Pro",
+        "description": "Enhanced features for professionals"
+      },
+      "premium": {
+        "name": "Premium",
+        "description": "Full access to all features"
+      }
+    },
+    "billingCycle": {
+      "monthly": "Monthly",
+      "annual": "Annual"
+    },
+    "features": {
+      "profileVisibility": "Profile Visibility",
+      "applicationLimit": "Application Limit",
+      "messagingUnlimited": "Unlimited Messaging",
+      "prioritySupport": "Priority Support",
+      "analytics": "Analytics Dashboard"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "overview": "Overview",
+    "recentActivity": "Recent Activity",
+    "notifications": "Notifications",
+    "stats": {
+      "views": "Profile Views",
+      "applications": "Applications",
+      "messages": "Messages",
+      "favorites": "Favorites"
+    }
+  }
+}

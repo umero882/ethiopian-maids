@@ -1,0 +1,11 @@
+{
+  "name": "@ethio-maids/app-communications",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ethiopian Maids Communications - SMS, Email, Push Notifications",
+  "main": "./index.js",
+  "scripts": {
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {}
+}

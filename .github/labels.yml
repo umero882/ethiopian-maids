@@ -1,0 +1,46 @@
+labels:
+  - name: feat
+    color: 1D76DB
+    description: New feature or enhancement
+  - name: fix
+    color: D93F0B
+    description: Bug fix
+  - name: bug
+    color: D93F0B
+    description: Issues or PRs related to a bug
+  - name: docs
+    color: 0E8A16
+    description: Documentation changes
+  - name: test
+    color: 5319E7
+    description: Tests and coverage
+  - name: ci
+    color: 0052CC
+    description: CI/CD and build pipelines
+  - name: chore
+    color: C5DEF5
+    description: Maintenance and chores
+  - name: refactor
+    color: FBCA04
+    description: Code refactoring without behavior changes
+  - name: deps
+    color: 5319E7
+    description: Dependencies updates
+  - name: build
+    color: 0366D6
+    description: Build tooling and configs
+  - name: enhancement
+    color: 0E8A16
+    description: Requested or incremental enhancements
+  - name: hotfix
+    color: B60205
+    description: Critical production fix
+  - name: major
+    color: B60205
+    description: Breaking change (major version bump)
+  - name: minor
+    color: 1D76DB
+    description: Minor version bump hint
+  - name: patch
+    color: 0E8A16
+    description: Patch version bump hint
