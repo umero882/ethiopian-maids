@@ -8,7 +8,14 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Ethiopian Maids Service Platform\n\nComplete React-based platform with multi-user dashboards:\n- Agency dashboard with calendar, messaging, sponsors management\n- Maid profiles and availability system\n- Sponsor management and job postings\n- PostgreSQL database with comprehensive migrations\n- Supabase integration with RLS policies\n- Real-time messaging and notifications\n- Payment processing integration\n\nTech Stack:\n- React 18 + Vite\n- TailwindCSS + Radix UI\n- PostgreSQL + Supabase\n- Jest + Playwright testing\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git branch:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add poly repo CI/CD and deployment infrastructure\n\n- Enhanced CI workflow for development, staging, and main branches\n- Added automated Vercel deployment workflow for all environments\n- Created comprehensive branch strategy documentation\n- Enhanced PR template with branch selection guidance\n- Configured Vercel with GitHub integration\n- Added complete Vercel setup guide with environment configs\n\nFeatures:\n- Multi-environment CI/CD pipeline\n- Branch-specific deployment automation\n- Security audit for staging and production\n- PR deployment preview comments\n- Comprehensive documentation for team onboarding\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(git commit:*)",
+      "Bash(node scripts/verify-deployment.js:*)",
+      "Bash(node scripts/verify-deployment.cjs:*)"
     ],
     "deny": [],
     "ask": []
