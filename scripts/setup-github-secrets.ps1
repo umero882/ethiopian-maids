@@ -88,7 +88,7 @@ function Add-GitHubSecret {
 Write-Host "📦 Vercel Configuration" -ForegroundColor Blue
 Add-GitHubSecret "VERCEL_TOKEN" "olBORiuI87mRG6Qo1NR00mAD"
 Add-GitHubSecret "VERCEL_ORG_ID" "team_XnY1b9HZxbTV3OElmnJdJIZI"
-Add-GitHubSecret "VERCEL_PROJECT_ID" "ulove882's projects"
+Add-GitHubSecret "VERCEL_PROJECT_ID" "prj_T3mzPCeUM1kWrMaqf6E2Cad9lPQ3"
 
 # Supabase Secrets
 Write-Host ""

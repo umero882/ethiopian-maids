@@ -46,10 +46,10 @@ olBORiuI87mRG6Qo1NR00mAD
 team_XnY1b9HZxbTV3OElmnJdJIZI
 ```
 
-#### prj_T3mzPCeUM1kWrMaqf6E2Cad9lPQ3
+#### VERCEL_PROJECT_ID
 
 ```
-ulove882's projects
+prj_T3mzPCeUM1kWrMaqf6E2Cad9lPQ3
 ```
 
 ### Step 3: Add Supabase Secrets
