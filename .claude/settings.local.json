@@ -27,7 +27,18 @@
       "Bash(npm install:*)",
       "Bash(git submodule:*)",
       "Bash(cat:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(gh --version:*)",
+      "Bash(if [ -d \"apps\" ])",
+      "Bash(then echo \"apps/ directory exists\")",
+      "Bash(else echo \"apps/ directory does NOT exist\")",
+      "Bash(if [ -d \"services\" ])",
+      "Bash(then echo \"services/ directory exists\")",
+      "Bash(else echo \"services/ directory does NOT exist\")",
+      "Bash(if [ -d \"packages\" ])",
+      "Bash(then echo \"packages/ directory exists\")",
+      "Bash(else echo \"packages/ directory does NOT exist\")",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

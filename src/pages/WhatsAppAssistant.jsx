@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
   MessageSquare,
   Bot,
@@ -290,7 +290,7 @@ export default function WhatsAppAssistant() {
       <footer className="py-12 bg-gray-900 text-white">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-400">
-            © 2025 Ethiopian Maids. Powered by Claude AI.
+            ï¿½ 2025 Ethiopian Maids. Powered by Claude AI.
           </p>
         </div>
       </footer>
