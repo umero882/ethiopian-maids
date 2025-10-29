@@ -88,3 +88,9 @@ SESSION_*.md
 PHASE*_*.md
 *_CHECKLIST.md
 ethiopian-maids/
+
+# Secrets and sensitive files (SECURITY: Never commit!)
+GITHUB_SECRETS_SETUP.md
+**/setup-github-secrets.ps1
+**/setup-github-secrets.sh
+scripts/run-setup-auto.ps1
