@@ -7,76 +7,47 @@ on:
       - staging
       - development
 
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
 jobs:
-  deploy-production:
-    if: github.ref == 'refs/heads/main'
+  deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://ethiopian-maids.vercel.app
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Deploy to Vercel Production
-        uses: amondnet/vercel-action@v25
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./
+          node-version: 20
+          cache: 'npm'
 
-  deploy-staging:
-    if: github.ref == 'refs/heads/staging'
-    runs-on: ubuntu-latest
-    environment:
-      name: staging
-      url: https://ethiopian-maids-staging.vercel.app
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy to Vercel Staging
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--target staging'
-          alias-domains: staging.ethiopian-maids.vercel.app
-          working-directory: ./
+      - name: Build Project Artifacts
+        run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-  deploy-development:
-    if: github.ref == 'refs/heads/development'
-    runs-on: ubuntu-latest
-    environment:
-      name: development
-      url: https://ethiopian-maids-dev.vercel.app
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Deploy to Vercel Development
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          alias-domains: dev.ethiopian-maids.vercel.app
-          working-directory: ./
-
-  notify-deployment:
-    needs: [deploy-production, deploy-staging, deploy-development]
-    if: always()
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deployment notification
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main'
         run: |
-          BRANCH=${GITHUB_REF#refs/heads/}
-          ENV=$(echo $BRANCH | tr '[:lower:]' '[:upper:]')
-          echo "✅ Deployed $BRANCH to $ENV environment"
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
+          echo "DEPLOYMENT_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
+
+      - name: Deploy to Vercel (Preview)
+        if: github.ref != 'refs/heads/main'
+        run: |
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
+          echo "DEPLOYMENT_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
+
+      - name: Display Deployment URL
+        run: |
+          echo "🚀 Deployment successful!"
+          echo "📍 URL: ${{ env.DEPLOYMENT_URL }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "📝 Commit: ${{ github.sha }}"
