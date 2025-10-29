@@ -3,6 +3,11 @@
   "type": "module",
   "version": "0.1.0-alpha.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite",
     "dev:helper": "node scripts/dev-server.js",
