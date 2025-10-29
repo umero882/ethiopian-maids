@@ -1,0 +1,33 @@
+# Vercel Configuration for Ethio Maids Platform
+# This file contains environment-specific configurations
+
+# Production Environment Variables (Required)
+# Set these in Vercel Dashboard: https://vercel.com/[your-project]/settings/environment-variables
+
+# Supabase (Required)
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_KEY=your_service_key_here
+
+# Stripe (Required)
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Twilio (Optional)
+VITE_TWILIO_ACCOUNT_SID=your_account_sid
+TWILIO_AUTH_TOKEN=your_auth_token
+VITE_TWILIO_PHONE_NUMBER=+1234567890
+
+# Application Config
+VITE_APP_NAME=@ethio-maids
+VITE_APP_VERSION=0.1.0-alpha.0
+VITE_APP_ENVIRONMENT=production
+
+# Feature Flags
+VITE_ENABLE_CHAT=true
+VITE_ENABLE_VIDEO_CALLS=false
+VITE_ENABLE_ANALYTICS=true
+
+# Note: Variables prefixed with VITE_ are exposed to the frontend
+# Never prefix secrets with VITE_

@@ -221,7 +221,11 @@ function checkVercelConfig() {
   if (exists) {
     const config = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
     log(`${checkMark(config.github?.enabled)} GitHub integration enabled`);
-    log(`${checkMark(config.builds?.length > 0)} Build configuration present`);
+    log(`${checkMark(config.buildCommand)} Build command configured`);
+    log(`${checkMark(config.outputDirectory)} Output directory specified`);
+    log(`${checkMark(config.framework === 'vite')} Framework set to Vite`);
+    log(`${checkMark(config.headers?.length > 0)} Security headers configured`);
+    log(`${checkMark(config.rewrites?.length > 0)} SPA routing configured`);
   }
 
   return exists;

@@ -150,5 +150,5 @@ Write-Host "5. " -NoNewline
 Write-Host "DELETE GITHUB_SECRETS_SETUP.md for security" -ForegroundColor Red
 Write-Host ""
 
-Write-Host "Setup complete! 🎉" -ForegroundColor Green
+Write-Host "Setup complete!" -ForegroundColor Green
 Write-Host ""

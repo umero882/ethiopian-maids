@@ -15,7 +15,19 @@
       "Bash(git stash:*)",
       "Bash(git commit:*)",
       "Bash(node scripts/verify-deployment.js:*)",
-      "Bash(node scripts/verify-deployment.cjs:*)"
+      "Bash(node scripts/verify-deployment.cjs:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File scripts/setup-github-secrets.ps1)",
+      "Bash(bash:*)",
+      "Bash(git pull:*)",
+      "Bash(gh run list:*)",
+      "Bash(if [ -d \".vercel\" ])",
+      "Bash(then echo \"Directory exists\")",
+      "Bash(else echo \"Directory does not exist\")",
+      "Bash(fi)",
+      "Bash(npm install:*)",
+      "Bash(git submodule:*)",
+      "Bash(cat:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

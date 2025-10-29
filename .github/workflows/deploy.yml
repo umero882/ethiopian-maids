@@ -7,6 +7,11 @@ on:
       - staging
       - development
 
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -14,39 +19,115 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/staging' && 'staging' || 'development' }}
+      url: ${{ steps.deploy.outputs.url }}
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run pre-deployment checks
+        run: |
+          echo "Running pre-deployment validation..."
+          npm run env:validate
+          echo "Environment validation passed ✅"
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
         run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
 
       - name: Deploy to Vercel (Production)
+        id: deploy-prod
         if: github.ref == 'refs/heads/main'
         run: |
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
-          echo "DEPLOYMENT_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
+          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "DEPLOYMENT_URL=$URL" >> $GITHUB_ENV
+          echo "Deployed to: $URL"
 
       - name: Deploy to Vercel (Preview)
+        id: deploy-preview
         if: github.ref != 'refs/heads/main'
         run: |
-          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > deployment-url.txt
-          echo "DEPLOYMENT_URL=$(cat deployment-url.txt)" >> $GITHUB_ENV
+          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "DEPLOYMENT_URL=$URL" >> $GITHUB_ENV
+          echo "Deployed to: $URL"
 
-      - name: Display Deployment URL
+      - name: Set deployment output
+        id: deploy
         run: |
-          echo "🚀 Deployment successful!"
-          echo "📍 URL: ${{ env.DEPLOYMENT_URL }}"
-          echo "🌿 Branch: ${{ github.ref_name }}"
-          echo "📝 Commit: ${{ github.sha }}"
+          echo "url=${{ env.DEPLOYMENT_URL }}" >> $GITHUB_OUTPUT
+
+      - name: Run post-deployment verification
+        if: success()
+        run: |
+          echo "Verifying deployment at ${{ env.DEPLOYMENT_URL }}"
+          # Wait for deployment to be ready
+          sleep 10
+          # Check if site is accessible
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${{ env.DEPLOYMENT_URL }}")
+          if [ "$STATUS_CODE" -eq 200 ]; then
+            echo "✅ Deployment verification successful (HTTP $STATUS_CODE)"
+          else
+            echo "⚠️ Deployment returned HTTP $STATUS_CODE"
+            exit 1
+          fi
+
+      - name: Create deployment summary
+        if: always()
+        run: |
+          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.ref == 'refs/heads/main' && '🟢 Production' || github.ref == 'refs/heads/staging' && '🟡 Staging' || '🔵 Development' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment URL" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 [${{ env.DEPLOYMENT_URL }}](${{ env.DEPLOYMENT_URL }})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request' && success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = '${{ env.DEPLOYMENT_URL }}';
+            const environment = '${{ github.ref_name }}';
+            const message = `### 🚀 Deployment Successful
+
+            **Environment:** ${environment}
+            **URL:** ${deploymentUrl}
+
+            The preview deployment is ready for testing!`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            })

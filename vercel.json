@@ -2,15 +2,25 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm install",
+  "installCommand": "npm ci",
   "framework": "vite",
 
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VITE_APP_NAME": "@ethio-maids",
+    "VITE_APP_VERSION": "0.1.0-alpha.0"
   },
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "CI": "true"
+    }
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
   "headers": [
@@ -195,5 +205,16 @@
     "autoAlias": true,
     "autoJobCancelation": true,
     "silent": false
-  }
+  },
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/",
+      "permanent": true
+    }
+  ],
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "crons": []
 }
