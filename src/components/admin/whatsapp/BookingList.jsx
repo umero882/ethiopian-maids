@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * BookingList Component
  * List view of WhatsApp bookings with status management

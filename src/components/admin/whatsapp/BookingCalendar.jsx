@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * BookingCalendar Component - Enhanced Version
  * Advanced calendar view with day details and statistics

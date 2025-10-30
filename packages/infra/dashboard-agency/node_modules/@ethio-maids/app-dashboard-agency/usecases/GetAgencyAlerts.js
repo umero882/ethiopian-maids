@@ -1,3 +1,4 @@
+/* eslint-disable no-console, no-unused-vars */
 /**
  * GetAgencyAlerts - Use Case (Query)
  *

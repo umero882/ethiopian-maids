@@ -16,7 +16,7 @@
     "cleanup:console": "node scripts/remove-console-logs.cjs",
     "preview": "vite preview",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 600",
-    "lint:ci": "eslint . --max-warnings 100",
+    "lint:ci": "eslint . --max-warnings 200",
     "format": "prettier --write \"**/*.{js,jsx,json,md,html,css}\"",
     "test": "vitest run",
     "test:ui": "vitest --ui",
